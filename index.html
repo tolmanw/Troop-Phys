@@ -16,7 +16,7 @@
 
   <script>
     async function load() {
-      const resp = await fetch('/data/athletes.json');
+      const resp = await fetch('data/athletes.json');
       const data = await resp.json();
       const leaderboardDiv = document.getElementById('leaderboard');
       const profilesDiv = document.getElementById('profiles');
