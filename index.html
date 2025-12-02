@@ -26,14 +26,14 @@
       const leaderboardDiv = document.getElementById('leaderboard');
       const profilesDiv = document.getElementById('profiles');
 
-      // Leaderboard sorted by total monthly distance
+      // Sort by total monthly distance
       const leaderboard = Object.values(data.athletes)
-        .sort((a,b) => (a.daily_distance_km || []).reduce((x,y)=>x+y,0) - (b.daily_distance_km || []).reduce((x,y)=>x+y,0))
-        .reverse();
+        .sort((a,b) => (b.daily_distance_km || []).reduce((x,y)=>x+y,0) - (a.daily_distance_km || []).reduce((x,y)=>x+y,0));
 
+      // Render leaderboard with medals
       leaderboardDiv.innerHTML = leaderboard.map((u,i) => {
         const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
-        const totalKm = (u.daily_distance_km || []).reduce((x,y)=>x+y,0);
+        const totalKm = (u.daily_distance_km || []).reduce((x,y)=>x+y,0).toFixed(1);
         return `<div class="leaderboard-item">
                   <span class="medal">${medal}</span>
                   <span class="name">${u.firstname} ${u.lastname}</span>
@@ -41,17 +41,16 @@
                 </div>`;
       }).join('');
 
-      // Profile cards
+      // Render profile cards
       profilesDiv.innerHTML = leaderboard.map(u => {
-        const totalKm = (u.daily_distance_km || []).reduce((x,y)=>x+y,0);
+        const totalKm = (u.daily_distance_km || []).reduce((x,y)=>x+y,0).toFixed(1);
         return `
         <div class="profile-card">
           <img src="${u.profile || 'https://via.placeholder.com/64'}" alt="${u.firstname}" />
           <h3>${u.firstname} ${u.lastname}</h3>
           <p>@${u.username || ''}</p>
           <p>${totalKm} km this month</p>
-        </div>
-        `;
+        </div>`;
       }).join('');
     }
 
