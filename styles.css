@@ -1,6 +1,6 @@
 body {
   font-family: Arial, sans-serif;
-  max-width: 800px;
+  max-width: 900px;
   margin: auto;
   padding: 20px;
 }
@@ -13,6 +13,7 @@ h1, h2 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 15px;
+  margin-bottom: 30px;
 }
 
 .profile-card {
@@ -27,4 +28,26 @@ h1, h2 {
   height: 64px;
   border-radius: 50%;
   margin-bottom: 5px;
+}
+
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+
+.name {
+  width: 120px;
+  font-weight: bold;
+}
+
+.medal {
+  width: 25px;
+  text-align: center;
+  font-size: 18px;
+}
+
+.distance {
+  font-weight: bold;
 }
