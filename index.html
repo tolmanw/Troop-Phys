@@ -2,14 +2,45 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Fitness Challenge</title>
+  <title>302 Troop Phys Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="styles.css" rel="stylesheet" />
 </head>
 <body>
   <h1>302 Troop Phys Tracker</h1>
-  <p>Your Strava data will appear here.</p>
-
+  <h2>Leaderboard</h2>
   <div id="leaderboard">Loading leaderboard...</div>
+
+  <h2>Profiles</h2>
+  <div id="profiles"></div>
+
+  <script>
+    async function load() {
+      const resp = await fetch('/data/athletes.json');
+      const data = await resp.json();
+      const leaderboardDiv = document.getElementById('leaderboard');
+      const profilesDiv = document.getElementById('profiles');
+
+      // Create leaderboard sorted by monthly distance
+      const leaderboard = Object.values(data.athletes)
+        .sort((a,b) => b.monthly_distance_km - a.monthly_distance_km);
+
+      leaderboardDiv.innerHTML = '<ol>' + leaderboard.map(u => 
+        `<li>${u.firstname} ${u.lastname} — ${u.monthly_distance_km} km</li>`
+      ).join('') + '</ol>';
+
+      // Create profile cards
+      profilesDiv.innerHTML = leaderboard.map(u => `
+        <div class="profile-card">
+          <img src="${u.profile}" alt="${u.firstname}" />
+          <h3>${u.firstname} ${u.lastname}</h3>
+          <p>@${u.username}</p>
+          <p>${u.monthly_distance_km} km this month</p>
+        </div>
+      `).join('');
+    }
+
+    load().catch(e => console.error(e));
+  </script>
 </body>
 </html>
