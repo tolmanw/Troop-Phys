@@ -2,7 +2,7 @@ import os, json, requests
 from datetime import datetime, timezone
 from calendar import monthrange
 
-# Environment variables
+# --- Environment variables ---
 CLIENT_ID = os.environ['STRAVA_CLIENT_ID']
 CLIENT_SECRET = os.environ['STRAVA_CLIENT_SECRET']
 REFRESH_TOKENS_JSON = os.environ['STRAVA_REFRESH_TOKENS']
@@ -10,11 +10,11 @@ REFRESH_TOKENS_JSON = os.environ['STRAVA_REFRESH_TOKENS']
 refresh_tokens = json.loads(REFRESH_TOKENS_JSON)
 now = datetime.now(timezone.utc)
 
-# Function to get the Unix timestamp for the first day of a month
+# --- Get Unix timestamp for first day of a month ---
 def get_month_start(year, month):
     return int(datetime(year, month, 1, tzinfo=timezone.utc).timestamp())
 
-# Determine current month and previous month automatically
+# --- Current month and previous month ---
 current_month_start = get_month_start(now.year, now.month)
 if now.month == 1:
     previous_month_start = get_month_start(now.year-1, 12)
@@ -45,40 +45,28 @@ for username, info in refresh_tokens.items():
                          headers={"Authorization": f"Bearer {access_token}"})
         athlete = r.json()
 
-        # Monthly distances (previous + current month)
+        # --- Monthly distances ---
         monthly_distances = []
         for start in month_starts:
             r = requests.get("https://www.strava.com/api/v3/athlete/activities",
                              headers={"Authorization": f"Bearer {access_token}"},
                              params={"after": start, "per_page": 200})
-            try:
-                activities = r.json()
-                if not isinstance(activities, list):
-                    print(f"Unexpected response for {username}: {activities}")
-                    activities = []
-            except Exception as e:
-                print(f"Failed to parse activities for {username}: {r.text}")
-                activities = []
+            activities = r.json() if isinstance(r.json(), list) else []
 
-            # Only count running activities
+            # Only runs
             run_activities = [a for a in activities if isinstance(a, dict) and a.get('type') == 'Run']
-            total_km = sum(a.get('distance',0)/1000 for a in run_activities)
-            monthly_distances.append(round(total_km,2))
+            total_km = sum(a.get('distance', 0)/1000 for a in run_activities)
+            monthly_distances.append(round(total_km, 2))
             print(f"{username} - runs fetched for month starting {start}: {len(run_activities)}")
 
-        # Daily distances for current month
+        # --- Daily distances for current month ---
         days_in_current_month = monthrange(now.year, now.month)[1]
         daily_distance = [0]*days_in_current_month
 
         r = requests.get("https://www.strava.com/api/v3/athlete/activities",
                          headers={"Authorization": f"Bearer {access_token}"},
                          params={"after": current_month_start, "per_page": 200})
-        try:
-            activities = r.json()
-            if not isinstance(activities, list):
-                activities = []
-        except Exception:
-            activities = []
+        activities = r.json() if isinstance(r.json(), list) else []
 
         for a in activities:
             if not isinstance(a, dict) or a.get('type') != 'Run':
@@ -86,7 +74,7 @@ for username, info in refresh_tokens.items():
             try:
                 day = datetime.fromisoformat(a['start_date_local']).day - 1
                 if 0 <= day < days_in_current_month:
-                    daily_distance[day] += a.get('distance',0)/1000
+                    daily_distance[day] += a.get('distance', 0)/1000
             except Exception:
                 continue
 
@@ -102,7 +90,7 @@ for username, info in refresh_tokens.items():
     except Exception as e:
         print(f"Error fetching data for {username}: {e}")
 
-# Write JSON
+# --- Write JSON ---
 os.makedirs("data", exist_ok=True)
 with open("data/athletes.json","w") as f:
     json.dump({"athletes": athletes_out}, f, indent=2)
