@@ -1,45 +1,136 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en" class="dark">
 <head>
-  <meta charset="utf-8" />
-  <title>302 Troop Phys Tracker</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="styles.css" rel="stylesheet" />
-</head>
-
-<body>
-  <header>
-    <h1>302 Troop Phys Tracker</h1>
-
-    <div id="activity-selector">
-      <label for="activity">Activity Type:</label>
-      <select id="activity">
-        <option value="Run">Run</option>
-        <option value="Trail Run">Trail Run</option>
-        <option value="Walk">Walk</option>
-        <option value="Hike">Hike</option>
-        <option value="Ride">Ride</option>
-        <option value="Virtual Ride">Virtual Ride</option>
-      </select>
-    </div>
-  </header>
-
-  <main>
-    <section id="leaderboard-section">
-      <h2>Leaderboard</h2>
-      <div id="leaderboard">Loading leaderboard...</div>
-    </section>
-
-    <section id="charts-section">
-      <h2 id="month-title">Monthly Distance</h2>
-      <canvas id="monthlyChart"></canvas>
-
-      <h2>Daily Distance</h2>
-      <canvas id="dailyChart"></canvas>
-    </section>
-  </main>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Strava Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="script.js"></script>
+  <style>
+    body {
+      background-color: #121212;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+    }
+    .card {
+      background: #1e1e1e;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.4);
+    }
+    select {
+      background: #1e1e1e;
+      color: #fff;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      width: 100%;
+      border: 1px solid #444;
+    }
+    img.profile {
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Strava Dashboard</h1>
+
+    <label for="activitySelect">Select Activity Type:</label>
+    <select id="activitySelect">
+      <option value="Run">Run</option>
+      <option value="Trail Run">Trail Run</option>
+      <option value="Walk">Walk</option>
+      <option value="Hike">Hike</option>
+      <option value="Ride">Ride</option>
+      <option value="Virtual Ride">Virtual Ride</option>
+    </select>
+
+    <div id="athletes"></div>
+  </div>
+
+  <script>
+    async function loadData() {
+      const res = await fetch('data/athletes.json');
+      const data = await res.json();
+      return data;
+    }
+
+    function buildAthleteCard(name, img, monthNames, monthlyDistances, dailyDistances) {
+      return `
+        <div class="card">
+          <h2>${name}</h2>
+          <img class="profile" src="${img}" />
+
+          <h3>Monthly Distance</h3>
+          <canvas id="monthly_${name}"></canvas>
+
+          <h3>Daily Distance</h3>
+          <canvas id="daily_${name}"></canvas>
+        </div>
+      `;
+    }
+
+    function renderCharts(name, monthNames, monthlyDistances, dailyDistances) {
+      new Chart(document.getElementById(`monthly_${name}`), {
+        type: 'bar',
+        data: {
+          labels: monthNames,
+          datasets: [{ label: 'Monthly KM', data: monthlyDistances }]
+        },
+        options: { responsive: true }
+      });
+
+      new Chart(document.getElementById(`daily_${name}`), {
+        type: 'line',
+        data: {
+          labels: dailyDistances.map((_, i) => i + 1),
+          datasets: [{ label: 'Daily KM', data: dailyDistances }]
+        },
+        options: { responsive: true }
+      });
+    }
+
+    async function init() {
+      const activitySelect = document.getElementById('activitySelect');
+      const container = document.getElementById('athletes');
+      const data = await loadData();
+
+      function refresh() {
+        container.innerHTML = '';
+
+        Object.values(data.athletes).forEach(a => {
+          container.innerHTML += buildAthleteCard(
+            a.username,
+            a.profile,
+            data.month_names,
+            a.monthly_distances,
+            a.daily_distance_km
+          );
+
+          renderCharts(
+            a.username,
+            data.month_names,
+            a.monthly_distances,
+            a.daily_distance_km
+          );
+        });
+      }
+
+      activitySelect.addEventListener('change', refresh);
+
+      refresh();
+    }
+
+    init();
+  </script>
 </body>
 </html>
