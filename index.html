@@ -99,7 +99,6 @@ async function loadData(activityType="All") {
     athletesData = data.athletes;
     monthNames = data.month_names;
 
-    // populate month selector
     const monthSelector = document.getElementById("dailyMonthSelector");
     monthSelector.innerHTML = "";
     monthNames.forEach((m,i)=>{
@@ -108,7 +107,7 @@ async function loadData(activityType="All") {
         opt.textContent = m;
         monthSelector.appendChild(opt);
     });
-    monthSelector.selectedIndex = monthNames.length - 1; // default: current month
+    monthSelector.selectedIndex = monthNames.length - 1; // default current month
 
     renderDashboard(activityType);
 }
@@ -116,21 +115,17 @@ async function loadData(activityType="All") {
 function renderDashboard(activityType="All") {
     const container = document.getElementById("container");
     container.innerHTML = "";
+
     const monthIndex = parseInt(document.getElementById("dailyMonthSelector").value);
 
     Object.entries(athletesData).forEach(([username, athlete]) => {
 
         const monthlyDistance = athlete.monthly_distances.map(d => +(d*0.621371).toFixed(2));
-        const dailyDistance = athlete.daily_distance_km.map(d => +(d*0.621371).toFixed(2));
+        const monthlyTime = athlete.monthly_time;
 
-        function hhmmToMinutes(arr){ 
-            return arr.map(s => { 
-                const [h,m] = s.split(":"); 
-                return parseInt(h)*60 + parseInt(m); 
-            }); 
-        }
-        const monthlyTimeMin = hhmmToMinutes(athlete.monthly_time);
-        const dailyTimeMin = hhmmToMinutes(athlete.daily_time);
+        // daily for selected month
+        const dailyDistance = athlete.daily_distance_km[monthIndex].map(d => +(d*0.621371).toFixed(2));
+        const dailyTime = athlete.daily_time_min[monthIndex];
 
         const card = document.createElement("div");
         card.className = "card";
@@ -171,28 +166,28 @@ function renderDashboard(activityType="All") {
         new Chart(document.getElementById(`monthChart-${username}`), {
             type: "bar",
             data: { labels: monthNames, datasets: [{ label: "Distance (miles)", data: monthlyDistance, backgroundColor: "rgba(75, 192, 192, 0.6)" }] },
-            options: { responsive:true, maintainAspectRatio:true, aspectRatio:1.5 }
+            options: { responsive:true, maintainAspectRatio:true, aspectRatio:1.5, scales:{ y:{ beginAtZero:true } } }
+        });
+
+        // Monthly Time
+        new Chart(document.getElementById(`monthTimeChart-${username}`), {
+            type: "bar",
+            data: { labels: monthNames, datasets: [{ label: "Time (minutes)", data: monthlyTime, backgroundColor: "rgba(255,159,64,0.6)" }] },
+            options: { responsive:true, maintainAspectRatio:true, aspectRatio:1.5, scales:{ y:{ beginAtZero:true } } }
         });
 
         // Daily Distance
         new Chart(document.getElementById(`dailyChart-${username}`), {
             type: "line",
             data: { labels: dailyDistance.map((_,i)=>i+1), datasets:[{label:"Daily Distance (miles)", data:dailyDistance, borderColor:"rgba(75,192,192,1)", borderWidth:2, fill:false}]},
-            options: { responsive:true, maintainAspectRatio:true, aspectRatio:1.5 }
-        });
-
-        // Monthly Time
-        new Chart(document.getElementById(`monthTimeChart-${username}`), {
-            type: "bar",
-            data: { labels: monthNames, datasets: [{ label:"Monthly Time (minutes)", data:monthlyTimeMin, backgroundColor:"rgba(255,159,64,0.6)" }] },
-            options: { responsive:true, maintainAspectRatio:true, aspectRatio:1.5 }
+            options: { responsive:true, maintainAspectRatio:true, aspectRatio:1.5, scales:{ y:{ beginAtZero:true } } }
         });
 
         // Daily Time
         new Chart(document.getElementById(`dailyTimeChart-${username}`), {
             type: "line",
-            data: { labels: dailyTimeMin.map((_,i)=>i+1), datasets:[{label:"Daily Time (minutes)", data:dailyTimeMin, borderColor:"rgba(255,159,64,1)", borderWidth:2, fill:false}]},
-            options: { responsive:true, maintainAspectRatio:true, aspectRatio:1.5 }
+            data: { labels: dailyTime.map((_,i)=>i+1), datasets:[{label:"Daily Time (minutes)", data:dailyTime, borderColor:"rgba(255,159,64,1)", borderWidth:2, fill:false}]},
+            options: { responsive:true, maintainAspectRatio:true, aspectRatio:1.5, scales:{ y:{ beginAtZero:true } } }
         });
     });
 }
