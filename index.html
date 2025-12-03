@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>302 Troop Phys Dashboard</title>
+<title>Strava Dashboard</title>
 
 <style>
 body {
@@ -19,17 +19,13 @@ select {
     border-radius: 6px;
     border: 1px solid #30363d;
     margin-bottom: 20px;
+}
 .card {
-    background: #1b1f25; /* light greyish card */
+    background: #1b1f25;
     padding: 20px;
     border-radius: 12px;
     margin-bottom: 30px;
     box-shadow: 0 0 10px #0005;
-    
-    /* center card and limit width */
-    max-width: 1000px; /* adjust as needed */
-    margin-left: auto;
-    margin-right: auto;
 }
 .athlete {
     display: flex;
@@ -47,12 +43,12 @@ select {
     gap: 15px;
     flex-wrap: wrap;
     margin-bottom: 25px;
-    justify-content: space-between; /* space between charts, not full stretch */
+    justify-content: flex-start;
 }
-
 .chart-container {
-    flex: 1 1 220px;  /* grow/shrink, min width 220px */
-    max-width: 320px; /* limit width of each chart */
+    flex: 1;
+    min-width: 220px;
+    max-width: 320px;
     background: #0d1117;
     border-radius: 10px;
     padding: 10px;
@@ -73,7 +69,7 @@ h3 {
 </head>
 <body>
 
-<h1>302 Troop Phys Dashboard</h1>
+<h1>Strava Dashboard</h1>
 
 <label>Select Activity Type:</label>
 <select id="activityFilter">
@@ -111,7 +107,7 @@ async function loadData(activityType="All") {
         opt.textContent = m;
         monthSelector.appendChild(opt);
     });
-    monthSelector.selectedIndex = monthNames.length - 1; // default current month
+    monthSelector.selectedIndex = monthNames.length - 1;
 
     renderDashboard(activityType);
 }
@@ -127,7 +123,6 @@ function renderDashboard(activityType="All") {
         const monthlyDistance = athlete.monthly_distances.map(d => +(d*0.621371).toFixed(2));
         const monthlyTime = athlete.monthly_time;
 
-        // daily for selected month
         const dailyDistance = athlete.daily_distance_km[monthIndex].map(d => +(d*0.621371).toFixed(2));
         const dailyTime = athlete.daily_time_min[monthIndex];
 
@@ -148,7 +143,7 @@ function renderDashboard(activityType="All") {
                     <canvas id="monthChart-${username}"></canvas>
                 </div>
                 <div class="chart-container">
-                    <h3>Monthly Time (minutes)</h3>
+                    <h3>Monthly Time </h3>
                     <canvas id="monthTimeChart-${username}"></canvas>
                 </div>
             </div>
@@ -196,7 +191,6 @@ function renderDashboard(activityType="All") {
     });
 }
 
-// Event listeners
 document.getElementById("activityFilter").addEventListener("change", e => renderDashboard(e.target.value));
 document.getElementById("dailyMonthSelector").addEventListener("change", () => renderDashboard(document.getElementById("activityFilter").value));
 
