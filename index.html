@@ -2,109 +2,44 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Fitness Challenge</title>
+  <title>302 Troop Phys Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="styles.css" rel="stylesheet" />
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    #leaderboard div { margin-bottom: 20px; }
-    #leaderboard img { border-radius: 50%; vertical-align: middle; margin-right: 10px; }
-    canvas { margin-top: 40px; }
-  </style>
 </head>
+
 <body>
-  <h1>302 Troop Phys Tracker</h1>
-  <div id="leaderboard">Loading leaderboard...</div>
-  
-  <h2>Daily Distances (Current Month)</h2>
-  <canvas id="dailyChart" width="600" height="200"></canvas>
+  <header>
+    <h1>302 Troop Phys Tracker</h1>
 
-  <h2>Monthly Distances (Last 2 Months)</h2>
-  <canvas id="monthlyChart" width="600" height="200"></canvas>
+    <div id="activity-selector">
+      <label for="activity">Activity Type:</label>
+      <select id="activity">
+        <option value="Run">Run</option>
+        <option value="Trail Run">Trail Run</option>
+        <option value="Walk">Walk</option>
+        <option value="Hike">Hike</option>
+        <option value="Ride">Ride</option>
+        <option value="Virtual Ride">Virtual Ride</option>
+      </select>
+    </div>
+  </header>
 
-  <script>
-    async function loadLeaderboard() {
-      try {
-        const response = await fetch('data/athletes.json');
-        const data = await response.json();
-        const leaderboardDiv = document.getElementById('leaderboard');
-        leaderboardDiv.innerHTML = '';
+  <main>
+    <section id="leaderboard-section">
+      <h2>Leaderboard</h2>
+      <div id="leaderboard">Loading leaderboard...</div>
+    </section>
 
-        const dailyDatasets = [];
-        const monthlyDatasets = [];
+    <section id="charts-section">
+      <h2 id="month-title">Monthly Distance</h2>
+      <canvas id="monthlyChart"></canvas>
 
-        const athleteEntries = Object.values(data.athletes);
-        if (athleteEntries.length === 0) {
-          leaderboardDiv.innerText = 'No athlete data available.';
-          return;
-        }
+      <h2>Daily Distance</h2>
+      <canvas id="dailyChart"></canvas>
+    </section>
+  </main>
 
-        athleteEntries.forEach(user => {
-          const totalDistance = user.daily_distance_km.reduce((a,b)=>a+b,0).toFixed(2);
-          const div = document.createElement('div');
-          div.innerHTML = `
-            <img src="${user.profile}" width="50">
-            <strong>${user.firstname} ${user.lastname}</strong>
-            - Total this month: ${totalDistance} km
-          `;
-          leaderboardDiv.appendChild(div);
-
-          // Daily distance line chart dataset
-          dailyDatasets.push({
-            label: `${user.firstname} ${user.lastname}`,
-            data: user.daily_distance_km,
-            fill: false,
-            borderColor: '#' + Math.floor(Math.random()*16777215).toString(16),
-            tension: 0.1
-          });
-
-          // Monthly bar chart dataset
-          monthlyDatasets.push({
-            label: `${user.firstname} ${user.lastname}`,
-            data: user.monthly_distances,
-            backgroundColor: 'rgba(75, 192, 192, 0.6)'
-          });
-        });
-
-        // --- Daily chart labels ---
-        const dailyLabels = athleteEntries[0].daily_distance_km.map((_, i)=>i+1);
-
-        new Chart(document.getElementById('dailyChart').getContext('2d'), {
-          type: 'line',
-          data: { labels: dailyLabels, datasets: dailyDatasets },
-          options: {
-            responsive: true,
-            plugins: { legend: { position: 'bottom' } },
-            scales: {
-              x: { title: { display: true, text: 'Day of Month' } },
-              y: { title: { display: true, text: 'Distance (km)' }, beginAtZero: true }
-            }
-          }
-        });
-
-        // --- Monthly chart labels ---
-        const monthLabels = data.month_names || ['Previous Month','Current Month'];
-
-        new Chart(document.getElementById('monthlyChart').getContext('2d'), {
-          type: 'bar',
-          data: { labels: monthLabels, datasets: monthlyDatasets },
-          options: {
-            responsive: true,
-            plugins: { legend: { position: 'bottom' } },
-            scales: {
-              y: { beginAtZero: true, title: { display: true, text: 'Distance (km)' } }
-            }
-          }
-        });
-
-      } catch(err) {
-        console.error('Error loading athletes.json:', err);
-        document.getElementById('leaderboard').innerText = 'Failed to load leaderboard.';
-      }
-    }
-
-    loadLeaderboard();
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
