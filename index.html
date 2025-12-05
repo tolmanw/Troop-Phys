@@ -34,8 +34,10 @@ select {
     padding: 12px;
     border-radius: 12px;
     box-shadow: 0 0 8px #0005;
-    width: 380px; /* fixed width */
-    display: block;
+    width: 380px; 
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .athlete {
@@ -58,11 +60,12 @@ select {
 }
 
 .charts-grid {
-    display: block; /* prevent vertical flex stretching */
+    display: flex;
+    flex-direction: column;
     gap: 12px;
 }
 
-.charts-top, .charts-bottom {
+.charts-top {
     display: block;
 }
 
@@ -76,8 +79,8 @@ select {
     background: #0d1117;
     border-radius: 10px;
     padding: 6px;
-    height: 160px; /* fixed height */
-    flex: 0 0 auto;
+    height: 160px; 
+    flex: 1 1 0;
     display: flex;
     flex-direction: column;
 }
@@ -86,7 +89,7 @@ select {
     background: #0d1117;
     border-radius: 10px;
     padding: 6px;
-    height: 180px; /* fixed height */
+    height: 180px; 
     flex: 0 0 auto;
     display: flex;
     flex-direction: column;
@@ -159,8 +162,14 @@ async function loadData(activityType="All") {
 
     const monthSelector = document.getElementById("dailyMonthSelector");
     monthSelector.innerHTML = "";
-    const lastIndex = MONTH_ABBR.length - 1;
-    [lastIndex-1, lastIndex].forEach(i=>{
+
+    // Use current + previous month dynamically
+    const now = new Date();
+    const currentMonthIndex = now.getMonth();
+    const prevMonthIndex = currentMonthIndex === 0 ? 11 : currentMonthIndex - 1;
+    const selectedMonthsIdx = [prevMonthIndex, currentMonthIndex];
+
+    selectedMonthsIdx.forEach(i => {
         const opt = document.createElement("option");
         opt.value = i;
         opt.textContent = MONTH_ABBR[i];
@@ -168,10 +177,10 @@ async function loadData(activityType="All") {
     });
     monthSelector.selectedIndex = 1;
 
-    renderDashboard(activityType);
+    renderDashboard(activityType, selectedMonthsIdx);
 }
 
-function renderDashboard(activityType="All") {
+function renderDashboard(activityType="All", selectedMonthsIdx) {
     const container = document.getElementById("container");
     container.innerHTML = "";
 
@@ -184,9 +193,6 @@ function renderDashboard(activityType="All") {
 
         const dailyDistancesKm = dailyDistancesAll[monthIndex] || [];
         const dailyDistancesMi = dailyDistancesKm.map(d => +(d*0.621371).toFixed(2));
-
-        const prevMonthIndex = Math.max(monthIndex - 1, 0);
-        const selectedMonthsIdx = [prevMonthIndex, monthIndex];
 
         const extraMonths = selectedMonthsIdx.map(i => MONTH_ABBR[i]);
         const extraTimes = selectedMonthsIdx.map(i => monthlyTimes[i] || 0);
@@ -296,8 +302,8 @@ function renderDashboard(activityType="All") {
     });
 }
 
-document.getElementById("activityFilter").addEventListener("change", e => renderDashboard(e.target.value));
-document.getElementById("dailyMonthSelector").addEventListener("change", () => renderDashboard(document.getElementById("activityFilter").value));
+document.getElementById("activityFilter").addEventListener("change", e => loadData(e.target.value));
+document.getElementById("dailyMonthSelector").addEventListener("change", () => loadData(document.getElementById("activityFilter").value));
 
 loadData();
 </script>
