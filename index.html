@@ -197,19 +197,19 @@ function renderDashboard(activityType="All") {
         let monthChart = new Chart(document.getElementById(`monthChart-${username}`), {
             type: "bar",
             data: { labels: monthNames, datasets: [{ data: monthlyDistanceMi, backgroundColor:"rgba(75,192,192,0.6)" }] },
-            options:{ responsive:true, maintainAspectRatio:true, aspectRatio:1.5, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
+            options:{ responsive:true, maintainAspectRatio:true, aspectRatio:1.2, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
         });
 
         let monthTimeChart = new Chart(document.getElementById(`monthTimeChart-${username}`), {
             type: "bar",
             data: { labels: monthNames, datasets:[{ data: monthlyTime, backgroundColor:"rgba(255,159,64,0.6)" }] },
-            options:{ responsive:true, maintainAspectRatio:true, aspectRatio:1.5, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
+            options:{ responsive:true, maintainAspectRatio:true, aspectRatio:1.2, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
         });
 
         let extraChart = new Chart(document.getElementById(`extraChart-${username}`), {
             type:"bar",
             data:{ labels: extraMonths, datasets:[{ data: extraTime, backgroundColor: extraColors, borderRadius:0, barThickness:10 }] },
-            options:{ responsive:true, maintainAspectRatio:true, aspectRatio:1.5, plugins:{ legend:{ display:false }, goalLine:{ lineAt:EXTRA_GOAL, color:"lime" } }, scales:{ y:{ beginAtZero:true, suggestedMax: Math.max(...extraTime, EXTRA_GOAL)+60 } } }
+            options:{ responsive:true, maintainAspectRatio:true, aspectRatio:1.2, plugins:{ legend:{ display:false }, goalLine:{ lineAt:EXTRA_GOAL, color:"lime" } }, scales:{ y:{ beginAtZero:true, suggestedMax: Math.max(...extraTime, EXTRA_GOAL)+60 } } }
         });
 
         let fontSize = dailyDistanceMi.length > 20 ? 8 : 12;
@@ -217,7 +217,8 @@ function renderDashboard(activityType="All") {
             type:"bar",
             data:{ labels: dailyDistanceMi.map((_,i)=>i+1), datasets:[{ data: dailyDistanceMi, backgroundColor:"rgba(75,192,192,0.8)", minBarLength:2, barThickness:6 }] },
             options:{ 
-                responsive:true, maintainAspectRatio:true, aspectRatio:2, plugins:{ legend:{ display:false } },
+                responsive:true, maintainAspectRatio:true, aspectRatio:1.6, // scaled down by 20%
+                plugins:{ legend:{ display:false } },
                 scales:{ x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0, font:{ size: fontSize } } }, y:{ beginAtZero:true } }
             }
         });
