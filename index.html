@@ -210,6 +210,7 @@ function renderDashboard(activityType="All") {
         `;
         container.appendChild(card);
 
+        // Monthly charts
         let monthChart = new Chart(document.getElementById(`monthChart-${username}`), {
             type: "bar",
             data: { labels: monthNames, datasets: [{ data: monthlyDistanceMi, backgroundColor:"rgba(75,192,192,0.6)" }] },
@@ -228,14 +229,17 @@ function renderDashboard(activityType="All") {
             options:{ responsive:true, maintainAspectRatio:true, aspectRatio:1.2, plugins:{ legend:{ display:false }, goalLine:{ lineAt:EXTRA_GOAL, color:"lime" } }, scales:{ y:{ beginAtZero:true, suggestedMax: Math.max(...extraTime, EXTRA_GOAL)+60 }, x:{ ticks:{ font:{ size:10 } } } } }
         });
 
-        let fontSize = dailyDistanceMi.length > 20 ? 8 : 12;
+        // Daily distance chart with fixed font size and reduced aspect ratio to prevent stretching
         let dailyChart = new Chart(document.getElementById(`dailyChart-${username}`), {
             type:"bar",
             data:{ labels: dailyDistanceMi.map((_,i)=>i+1), datasets:[{ data: dailyDistanceMi, backgroundColor:"rgba(75,192,192,0.8)", minBarLength:2, barThickness:6 }] },
             options:{ 
-                responsive:true, maintainAspectRatio:true, aspectRatio:1.4,
+                responsive:true, maintainAspectRatio:true, aspectRatio:1.2, // reduced to prevent stretching
                 plugins:{ legend:{ display:false } },
-                scales:{ x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0, font:{ size: fontSize } } }, y:{ beginAtZero:true } }
+                scales:{ 
+                    x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0, font:{ size:10 } } }, 
+                    y:{ beginAtZero:true } 
+                }
             }
         });
 
