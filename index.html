@@ -35,9 +35,7 @@ select {
     border-radius: 12px;
     box-shadow: 0 0 8px #0005;
     width: 380px; /* fixed width */
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    display: block;
 }
 
 .athlete {
@@ -60,14 +58,12 @@ select {
 }
 
 .charts-grid {
-    display: flex;
-    flex-direction: column;
+    display: block; /* prevent vertical flex stretching */
     gap: 12px;
 }
 
-.charts-top {
-    display: flex;
-    justify-content: center;
+.charts-top, .charts-bottom {
+    display: block;
 }
 
 .charts-bottom {
@@ -80,8 +76,8 @@ select {
     background: #0d1117;
     border-radius: 10px;
     padding: 6px;
-    height: 160px; /* fixed height for monthly and extra charts */
-    flex: 1 1 0;
+    height: 160px; /* fixed height */
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
 }
@@ -90,8 +86,8 @@ select {
     background: #0d1117;
     border-radius: 10px;
     padding: 6px;
-    height: 180px; /* fixed height for daily chart */
-    flex: 0 0 auto; /* prevents stretching */
+    height: 180px; /* fixed height */
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
 }
