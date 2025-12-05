@@ -67,9 +67,9 @@ h3 {
     margin-bottom: 15px;
 }
 
-/* Specific sizes for the new layout */
-.chart-daily { flex: 1.5; min-width: 390px; max-width: 500px; }
-.chart-extra { flex: 0.8; min-width: 180px; max-width: 250px; }
+/* Specific layout sizes */
+.chart-daily { flex: 2; min-width: 520px; max-width: 700px; }
+.chart-extra { flex: 2; min-width: 520px; max-width: 700px; }
 .chart-monthly { flex: 1.2; min-width: 260px; max-width: 400px; }
 </style>
 
@@ -175,17 +175,23 @@ function renderDashboard(activityType="All") {
                 </select>
             </div>
 
+            <!-- Daily distance chart -->
             <div class="charts-row">
                 <div class="chart-container chart-daily">
                     <h3>Daily Distance - ${monthNames[monthIndex]}</h3>
                     <canvas id="dailyChart-${username}"></canvas>
                 </div>
+            </div>
+
+            <!-- Extra Phys Goal chart aligned with monthly charts -->
+            <div class="charts-row">
                 <div class="chart-container chart-extra">
                     <h3>Extra Phys Goal</h3>
                     <canvas id="extraChart-${username}"></canvas>
                 </div>
             </div>
 
+            <!-- Monthly charts -->
             <div class="charts-row">
                 <div class="chart-container chart-monthly">
                     <h3>Monthly Distance</h3>
@@ -220,11 +226,18 @@ function renderDashboard(activityType="All") {
             options:{ responsive:true, maintainAspectRatio:true, aspectRatio:1.5, plugins:{ legend:{ display:false }, goalLine:{ lineAt:EXTRA_GOAL, color:"lime" } }, scales:{ y:{ beginAtZero:true, suggestedMax: Math.max(...monthlyTime, EXTRA_GOAL)+60 } } }
         });
 
-        // Daily Distance Chart
+        // Daily Distance Chart with dynamically scaled font
+        let fontSize = dailyDistanceMi.length > 20 ? 8 : 12;
         let dailyChart = new Chart(document.getElementById(`dailyChart-${username}`), {
             type:"bar",
             data:{ labels: dailyDistanceMi.map((_,i)=>i+1), datasets:[{ data: dailyDistanceMi, backgroundColor:"rgba(75,192,192,0.8)", minBarLength:2 }] },
-            options:{ responsive:true, maintainAspectRatio:true, aspectRatio:1.5, plugins:{ legend:{ display:false } }, scales:{ x:{ barPercentage:0.3, categoryPercentage:0.5, ticks:{ autoSkip:false, maxRotation:0, minRotation:0 } }, y:{ beginAtZero:true } } }
+            options:{ 
+                responsive:true, maintainAspectRatio:true, aspectRatio:1.5, plugins:{ legend:{ display:false } },
+                scales:{
+                    x:{ barPercentage:0.3, categoryPercentage:0.5, ticks:{ autoSkip:false, maxRotation:0, minRotation:0, font:{ size: fontSize } } },
+                    y:{ beginAtZero:true }
+                }
+            }
         });
 
         // Unit toggle
