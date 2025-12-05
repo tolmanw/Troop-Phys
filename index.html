@@ -15,10 +15,10 @@ body {
 select {
     background: #21262d;
     color: white;
-    padding: 8px;
+    padding: 6px 10px;
     border-radius: 6px;
     border: 1px solid #30363d;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .card {
@@ -35,7 +35,7 @@ select {
     display: flex;
     align-items: center;
     gap: 15px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 .athlete img {
     width: 50px;
@@ -68,11 +68,12 @@ h3 {
     font-size: 1em;
     color: #c9d1d9;
 }
+.unit-toggle {
+    margin-bottom: 15px;
+}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.2.1"></script>
-
 </head>
 <body>
 
@@ -89,14 +90,6 @@ h3 {
     <option value="Virtual Ride">Virtual Ride</option>
 </select>
 
-<br>
-
-<label>Units:</label>
-<select id="unitSelector">
-    <option value="miles">Miles</option>
-    <option value="km">Kilometers</option>
-</select>
-
 <br><br>
 
 <label>Select Month for Daily Charts:</label>
@@ -107,12 +100,6 @@ h3 {
 <script>
 let athletesData;
 let monthNames;
-let unitMode = "miles"; // default
-let allCharts = [];
-
-function convertDistance(km) {
-    return unitMode === "miles" ? km * 0.621371 : km;
-}
 
 async function loadData(activityType="All") {
     const response = await fetch("data/athletes.json");
@@ -133,31 +120,24 @@ async function loadData(activityType="All") {
     renderDashboard(activityType);
 }
 
-function clearCharts() {
-    allCharts.forEach(c => c.destroy());
-    allCharts = [];
-}
-
 function renderDashboard(activityType="All") {
-    clearCharts();
-
     const container = document.getElementById("container");
     container.innerHTML = "";
 
     const monthIndex = parseInt(document.getElementById("dailyMonthSelector").value);
-    const EXTRA_GOAL = 480; // 8h goal in minutes
 
     Object.entries(athletesData).forEach(([username, athlete]) => {
 
-        const monthlyDistance = athlete.monthly_distances.map(km => +convertDistance(km).toFixed(2));
+        // Monthly and daily data
+        let monthlyDistanceKm = athlete.monthly_distances;
+        let monthlyDistanceMi = monthlyDistanceKm.map(d => +(d*0.621371).toFixed(2));
         const monthlyTime = athlete.monthly_time;
 
-        const dailyDistance = athlete.daily_distance_km[monthIndex].map(km => +convertDistance(km).toFixed(2));
+        let dailyDistanceKm = athlete.daily_distance_km[monthIndex];
+        let dailyDistanceMi = dailyDistanceKm.map(d => +(d*0.621371).toFixed(2));
         const dailyTime = athlete.daily_time_min[monthIndex];
 
-        const extraColors = monthlyTime.map(t =>
-            t >= EXTRA_GOAL ? "rgba(0,200,0,0.7)" : "rgba(200,0,0,0.7)"
-        );
+        const EXTRA_GOAL = 480; // 8 hours in minutes
 
         const card = document.createElement("div");
         card.className = "card";
@@ -165,16 +145,26 @@ function renderDashboard(activityType="All") {
         card.innerHTML = `
             <div class="athlete">
                 <img src="${athlete.profile}">
-                <div><h2>${athlete.firstname} ${athlete.lastname}</h2></div>
+                <div>
+                    <h2>${athlete.firstname} ${athlete.lastname}</h2>
+                </div>
+            </div>
+
+            <div class="unit-toggle">
+                <label>Distance Unit:</label>
+                <select id="unit-${username}">
+                    <option value="mi" selected>Miles</option>
+                    <option value="km">Kilometers</option>
+                </select>
             </div>
 
             <div class="charts-row">
                 <div class="chart-container">
-                    <h3>Monthly Distance (${unitMode})</h3>
+                    <h3>Monthly Distance</h3>
                     <canvas id="monthChart-${username}"></canvas>
                 </div>
                 <div class="chart-container">
-                    <h3>Monthly Time (min)</h3>
+                    <h3>Monthly Time</h3>
                     <canvas id="monthTimeChart-${username}"></canvas>
                 </div>
             </div>
@@ -188,7 +178,7 @@ function renderDashboard(activityType="All") {
 
             <div class="charts-row">
                 <div class="chart-container">
-                    <h3>Daily Distance - ${monthNames[monthIndex]} (${unitMode})</h3>
+                    <h3>Daily Distance - ${monthNames[monthIndex]}</h3>
                     <canvas id="dailyChart-${username}"></canvas>
                 </div>
                 <div class="chart-container">
@@ -199,77 +189,140 @@ function renderDashboard(activityType="All") {
         `;
         container.appendChild(card);
 
-        function add(chart) {
-            allCharts.push(chart);
-            return chart;
-        }
-
-        add(new Chart(document.getElementById(`monthChart-${username}`), {
-            type: "bar",
-            data: { labels: monthNames, datasets: [{ data: monthlyDistance }] },
-            options: { scales:{ y:{ beginAtZero:true } } }
-        }));
-
-        add(new Chart(document.getElementById(`monthTimeChart-${username}`), {
-            type: "bar",
-            data: { labels: monthNames, datasets: [{ data: monthlyTime }] },
-            options: { scales:{ y:{ beginAtZero:true } } }
-        }));
-
-        add(new Chart(document.getElementById(`extraChart-${username}`), {
+        // Monthly Distance Chart
+        let monthChart = new Chart(document.getElementById(`monthChart-${username}`), {
             type: "bar",
             data: {
                 labels: monthNames,
-                datasets: [{ data: monthlyTime, backgroundColor: extraColors }]
+                datasets: [{
+                    label: "distance",
+                    data: monthlyDistanceMi,
+                    backgroundColor: "rgba(75,192,192,0.6)"
+                }]
             },
             options: {
-                scales:{ y:{ beginAtZero:true } },
+                responsive:true,
+                maintainAspectRatio:true,
+                aspectRatio:1.5,
+                plugins: { legend: { display: false } },
+                scales:{ y:{ beginAtZero:true } }
+            }
+        });
+
+        // Monthly Time Chart
+        let monthTimeChart = new Chart(document.getElementById(`monthTimeChart-${username}`), {
+            type: "bar",
+            data: {
+                labels: monthNames,
+                datasets: [{ label:"minutes", data: monthlyTime, backgroundColor:"rgba(255,159,64,0.6)" }]
+            },
+            options: {
+                responsive:true,
+                maintainAspectRatio:true,
+                aspectRatio:1.5,
+                plugins: { legend: { display: false } },
+                scales:{ y:{ beginAtZero:true } }
+            }
+        });
+
+        // Extra Phys Tracker
+        let extraColors = monthlyTime.map(t => t >= EXTRA_GOAL ? "rgba(0,200,0,0.7)" : "rgba(200,0,0,0.7)");
+        let extraChart = new Chart(document.getElementById(`extraChart-${username}`), {
+            type: "bar",
+            data: {
+                labels: monthNames,
+                datasets: [{
+                    label:"minutes",
+                    data: monthlyTime,
+                    backgroundColor: extraColors,
+                    borderRadius: 6
+                }]
+            },
+            options:{
+                responsive:true,
+                maintainAspectRatio:true,
+                aspectRatio:1.5,
                 plugins: {
-                    annotation: {
-                        annotations: {
-                            goalLine: {
-                                type: "line",
-                                yMin: EXTRA_GOAL,
-                                yMax: EXTRA_GOAL,
-                                borderColor: "yellow",
-                                borderWidth: 2,
-                                label: {
-                                    enabled: true,
-                                    content: "Goal",
-                                    color: "yellow",
-                                }
-                            }
-                        }
-                    }
+                    legend:{ display:false },
+                    annotation: {}
+                },
+                scales: {
+                    y: { beginAtZero:true, suggestedMax: Math.max(...monthlyTime, EXTRA_GOAL)+60 }
                 }
             }
-        }));
+        });
 
-        add(new Chart(document.getElementById(`dailyChart-${username}`), {
-            type: "line",
-            data: { labels: dailyDistance.map((_,i)=>i+1), datasets:[{ data:dailyDistance }] },
-            options: { scales:{ y:{ beginAtZero:true } } }
-        }));
+        // Draw horizontal line for goal
+        extraChart.options.plugins.annotation = {
+            annotations: {
+                line1: {
+                    type: "line",
+                    yMin: EXTRA_GOAL,
+                    yMax: EXTRA_GOAL,
+                    borderColor: "yellow",
+                    borderWidth: 2,
+                    label: { enabled:true, content:"8h Goal", color:"yellow" }
+                }
+            }
+        };
+        extraChart.update();
 
-        add(new Chart(document.getElementById(`dailyTimeChart-${username}`), {
-            type: "line",
-            data: { labels: dailyTime.map((_,i)=>i+1), datasets:[{ data:dailyTime }] },
-            options: { scales:{ y:{ beginAtZero:true } } }
-        }));
+        // Daily Distance Chart (thin bars)
+        let dailyChart = new Chart(document.getElementById(`dailyChart-${username}`), {
+            type: "bar",
+            data:{
+                labels: dailyDistanceMi.map((_,i)=>i+1),
+                datasets:[{ label:"distance", data: dailyDistanceMi, backgroundColor:"rgba(75,192,192,0.8)" }]
+            },
+            options:{
+                responsive:true,
+                maintainAspectRatio:true,
+                aspectRatio:1.5,
+                plugins:{ legend:{ display:false } },
+                scales:{
+                    x:{ barPercentage:0.4, categoryPercentage:0.5 },
+                    y:{ beginAtZero:true }
+                }
+            }
+        });
+
+        // Daily Time Chart (thin bars)
+        let dailyTimeChart = new Chart(document.getElementById(`dailyTimeChart-${username}`), {
+            type: "bar",
+            data:{
+                labels: dailyTime.map((_,i)=>i+1),
+                datasets:[{ label:"minutes", data: dailyTime, backgroundColor:"rgba(255,159,64,0.8)" }]
+            },
+            options:{
+                responsive:true,
+                maintainAspectRatio:true,
+                aspectRatio:1.5,
+                plugins:{ legend:{ display:false } },
+                scales:{
+                    x:{ barPercentage:0.4, categoryPercentage:0.5 },
+                    y:{ beginAtZero:true }
+                }
+            }
+        });
+
+        // Unit toggle event
+        document.getElementById(`unit-${username}`).addEventListener("change", e=>{
+            const unit = e.target.value;
+            let monthlyData = unit==="km" ? monthlyDistanceKm : monthlyDistanceMi;
+            let dailyData = unit==="km" ? dailyDistanceKm : dailyDistanceMi;
+
+            monthChart.data.datasets[0].data = monthlyData;
+            monthChart.update();
+
+            dailyChart.data.datasets[0].data = dailyData;
+            dailyChart.update();
+        });
 
     });
 }
 
 document.getElementById("activityFilter").addEventListener("change", e => renderDashboard(e.target.value));
-
-document.getElementById("dailyMonthSelector").addEventListener("change", () => {
-    renderDashboard(document.getElementById("activityFilter").value);
-});
-
-document.getElementById("unitSelector").addEventListener("change", e => {
-    unitMode = e.target.value;
-    renderDashboard(document.getElementById("activityFilter").value);
-});
+document.getElementById("dailyMonthSelector").addEventListener("change", () => renderDashboard(document.getElementById("activityFilter").value));
 
 loadData();
 </script>
