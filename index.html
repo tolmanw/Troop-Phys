@@ -15,7 +15,7 @@ body {
 select {
     background: #21262d;
     color: white;
-    padding: 4px 8px;
+    padding: 5px 10px;
     border-radius: 6px;
     border: 1px solid #30363d;
     margin-bottom: 6px;
@@ -23,11 +23,11 @@ select {
 
 .card {
     background: #1b1f25;
-    padding: 12px;
+    padding: 15px;
     border-radius: 12px;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
     box-shadow: 0 0 8px #0005;
-    width: 25%; /* Compact card width */
+    width: 30%; /* slightly larger */
     display: inline-block;
     vertical-align: top;
 }
@@ -35,23 +35,23 @@ select {
 .athlete {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     margin-bottom: 8px;
 }
 .athlete img {
-    width: 30px;
-    height: 30px;
+    width: 35px;
+    height: 35px;
     border-radius: 50%;
 }
 .athlete h2 {
-    font-size: 0.9em;
+    font-size: 1em;
     margin: 0;
 }
 
 .charts-grid {
     display: grid;
     grid-template-rows: auto auto;
-    gap: 10px;
+    gap: 12px;
 }
 
 .charts-top {
@@ -60,13 +60,13 @@ select {
 }
 
 .charts-top canvas {
-    height: 160px !important;
+    height: 180px !important;
 }
 
 .charts-bottom {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    gap: 10px;
 }
 
 .chart-container {
@@ -115,7 +115,9 @@ h3 {
 
 <script>
 let athletesData;
-let monthNames;
+
+// Abbreviated month names
+const MONTH_ABBR = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
 Chart.register({
   id: "goalLine",
@@ -124,7 +126,7 @@ Chart.register({
     const { ctx, chartArea: { left, right }, scales: { y } } = chart;
     const yPos = y.getPixelForValue(pluginOptions.lineAt);
     ctx.save();
-    ctx.setLineDash([5, 5]); // dashed
+    ctx.setLineDash([5, 5]);
     ctx.beginPath();
     ctx.moveTo(left, yPos);
     ctx.lineTo(right, yPos);
@@ -139,17 +141,16 @@ async function loadData(activityType="All") {
     const response = await fetch("data/athletes.json");
     const data = await response.json();
     athletesData = data.athletes;
-    monthNames = data.month_names.map(m => m.replace(/\s*\d{4}/, ''));
 
     const monthSelector = document.getElementById("dailyMonthSelector");
     monthSelector.innerHTML = "";
-    monthNames.forEach((m,i)=>{
+    MONTH_ABBR.forEach((m,i)=>{
         const opt = document.createElement("option");
         opt.value = i;
         opt.textContent = m;
         monthSelector.appendChild(opt);
     });
-    monthSelector.selectedIndex = monthNames.length - 1;
+    monthSelector.selectedIndex = MONTH_ABBR.length - 1;
 
     renderDashboard(activityType);
 }
@@ -170,10 +171,10 @@ function renderDashboard(activityType="All") {
         let dailyDistanceMi = dailyDistanceKm.map(d => +(d*0.621371).toFixed(2));
 
         const EXTRA_GOAL = 480; 
-        const extraMonths = monthNames.slice(-2);
+        const extraMonths = MONTH_ABBR.slice(-2);
         const extraTime = monthlyTime.slice(-2);
 
-        const BAR_COLOR = "rgba(75,192,192,0.8)"; // unified color palette
+        const BAR_COLOR = "rgba(75,192,192,0.8)";
         const extraColors = extraTime.map(_ => BAR_COLOR);
 
         const card = document.createElement("div");
@@ -197,7 +198,7 @@ function renderDashboard(activityType="All") {
 
             <div class="charts-grid">
                 <div class="charts-top chart-container">
-                    <h3>Daily Distance - ${monthNames[monthIndex]}</h3>
+                    <h3>Daily Distance - ${MONTH_ABBR[monthIndex]}</h3>
                     <canvas id="dailyChart-${username}"></canvas>
                 </div>
                 <div class="charts-bottom">
@@ -221,13 +222,13 @@ function renderDashboard(activityType="All") {
         // Monthly charts
         let monthChart = new Chart(document.getElementById(`monthChart-${username}`), {
             type: "bar",
-            data: { labels: monthNames, datasets: [{ data: monthlyDistanceMi, backgroundColor: BAR_COLOR, barThickness:6 }] },
+            data: { labels: MONTH_ABBR, datasets: [{ data: monthlyDistanceMi, backgroundColor: BAR_COLOR, barThickness:6 }] },
             options:{ responsive:true, maintainAspectRatio:true, aspectRatio:1, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true }, x:{ ticks:{ font:{ size:10 } } } } }
         });
 
         let monthTimeChart = new Chart(document.getElementById(`monthTimeChart-${username}`), {
             type: "bar",
-            data: { labels: monthNames, datasets:[{ data: monthlyTime, backgroundColor: BAR_COLOR, barThickness:6 }] },
+            data: { labels: MONTH_ABBR, datasets:[{ data: monthlyTime, backgroundColor: BAR_COLOR, barThickness:6 }] },
             options:{ responsive:true, maintainAspectRatio:true, aspectRatio:1, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true }, x:{ ticks:{ font:{ size:10 } } } } }
         });
 
