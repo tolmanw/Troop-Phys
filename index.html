@@ -7,7 +7,7 @@
 
 <style>
 :root {
-    --daily-width: 320px;       /* Daily chart width */
+    --daily-width: 310px;       /* Daily chart width */
     --daily-height: 180px;      /* Daily chart height */
     --bottom-width: 130px;      /* Bottom charts width */
     --bottom-height: 140px;     /* Bottom charts height */
@@ -22,15 +22,6 @@ body {
     color: #e6edf3;
     font-family: Arial, sans-serif;
     padding: 20px;
-}
-
-select {
-    background: #21262d;
-    color: white;
-    padding: 6px 10px;
-    border-radius: 6px;
-    border: 1px solid #30363d;
-    margin-bottom: 10px;
 }
 
 .card {
@@ -59,7 +50,6 @@ select {
     margin: 0;
 }
 
-/* Chart tile wrapper */
 .chart-tile {
     background: #2a2e36;
     border: 1px solid #555;
@@ -69,7 +59,6 @@ select {
     flex-direction: column;
 }
 
-/* Daily chart on top */
 .daily-chart-wrapper {
     width: var(--daily-width);
     height: var(--daily-height);
@@ -80,7 +69,6 @@ select {
     height: 100% !important;
 }
 
-/* Bottom charts: 1x3 layout */
 .bottom-charts {
     display: flex;
     justify-content: space-between;
@@ -95,7 +83,6 @@ select {
     width: 100% !important;
 }
 
-/* Chart title styling */
 .chart-tile h3 {
     margin: 0 0 3px 0;
     font-size: var(--title-size);
@@ -103,9 +90,6 @@ select {
     text-align: center;
 }
 
-.unit-toggle {
-    margin-bottom: 10px;
-}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -134,7 +118,7 @@ const FONT_SIZE = parseInt(getComputedStyle(document.documentElement).getPropert
 const TITLE_SIZE = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--title-size'));
 
 // Padding constant for all charts
-const CHART_PADDING = { top: 10, right: 10, bottom: 10, left: 10 };
+const CHART_PADDING = { top: 10, right: 10, bottom: 15, left: 10 };
 
 Chart.register({
   id: "goalLine",
@@ -158,6 +142,9 @@ async function loadData(activityType="All") {
     const data = await response.json();
     athletesData = data.athletes;
     monthNames = data.month_names.map(m => m.replace(/\s*\d{4}/, '').substring(0,3)); // abbreviated months
+
+    // Only last 2 months
+    monthNames = monthNames.slice(-2);
 
     const monthSelector = document.getElementById("dailyMonthSelector");
     monthSelector.innerHTML = "";
@@ -206,14 +193,13 @@ function renderDashboard(activityType="All") {
     Object.entries(athletesData).forEach(([alias, athlete]) => {
         if (activityType !== "All" && athlete.activity_types && !athlete.activity_types.includes(activityType)) return;
 
-        const monthlyDistanceKm = athlete.monthly_distances;
-        const monthlyDistanceMi = monthlyDistanceKm.map(d => +(d*0.621371).toFixed(2));
-        const monthlyTime = athlete.monthly_time;
-        const dailyDistanceKm = (athlete.daily_distance_km && athlete.daily_distance_km[monthIndex]) ? athlete.daily_distance_km[monthIndex] : [];
-        const dailyDistanceMi = dailyDistanceKm.map(d => +(d*0.621371).toFixed(2));
+        // Convert distances to miles
+        const monthlyDistanceMi = athlete.monthly_distances.slice(-2).map(d => +(d*0.621371).toFixed(2));
+        const monthlyTime = athlete.monthly_time.slice(-2);
+        const dailyDistanceMi = (athlete.daily_distance_km && athlete.daily_distance_km.length>0) ? athlete.daily_distance_km.slice(-2).map(dArr => dArr.map(d => +(d*0.621371).toFixed(2))) : [[]];
         const EXTRA_GOAL = 480;
-        const extraMonths = monthNames.slice(-2);
-        const extraTime = monthlyTime.slice(-2);
+        const extraMonths = monthNames;
+        const extraTime = monthlyTime;
 
         const card = document.createElement("div");
         card.className = "card";
@@ -222,14 +208,6 @@ function renderDashboard(activityType="All") {
             <div class="athlete">
                 <img src="${athlete.profile}">
                 <div><h2>${athlete.display_name}</h2></div>
-            </div>
-
-            <div class="unit-toggle">
-                <label>Distance Unit:</label>
-                <select id="unit-${alias}">
-                    <option value="mi" selected>Miles</option>
-                    <option value="km">Kilometers</option>
-                </select>
             </div>
 
             <div class="daily-chart-wrapper chart-tile">
@@ -262,7 +240,7 @@ function renderDashboard(activityType="All") {
         // === Daily Chart ===
         CHARTS[`dailyChart-${alias}`] = new Chart(document.getElementById(`dailyChart-${alias}`), {
             type: "bar",
-            data:{ labels: dailyDistanceMi.map((_,i)=>i+1), datasets:[{ data: dailyDistanceMi, backgroundColor:"rgba(75,192,192,0.8)", minBarLength:2, barThickness:15 }] },
+            data:{ labels: dailyDistanceMi[monthIndex] ? dailyDistanceMi[monthIndex].map((_,i)=>i+1) : [], datasets:[{ data: dailyDistanceMi[monthIndex] || [], backgroundColor:"rgba(75,192,192,0.8)", minBarLength:2, barThickness:15 }] },
             options:{ 
                 responsive:true,
                 maintainAspectRatio:true,
@@ -302,17 +280,6 @@ function renderDashboard(activityType="All") {
             }
         });
 
-        document.getElementById(`unit-${alias}`).addEventListener("change", e=>{
-            const unit = e.target.value;
-            let monthlyData = unit==="km"? monthlyDistanceKm: monthlyDistanceMi;
-            let dailyData = unit==="km"? dailyDistanceKm: dailyDistanceMi;
-
-            const mc = CHARTS[`monthChart-${alias}`];
-            if (mc) { mc.data.datasets[0].data = monthlyData; mc.update(); }
-
-            const dc = CHARTS[`dailyChart-${alias}`];
-            if (dc) { dc.data.labels = dailyData.map((_,i)=>i+1); dc.data.datasets[0].data = dailyData; dc.update(); }
-        });
     });
 }
 
