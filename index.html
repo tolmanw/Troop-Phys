@@ -6,18 +6,17 @@
 <title>Strava Dashboard</title>
 
 <style>
-/* === Adjustable constants === */
 :root {
-    --card-width: 400px;        /* Width of each athlete card */
-    --card-gap: 20px;           /* Gap between cards */
-    --daily-height: 200px;      /* Height of daily chart */
-    --bottom-height: 150px;     /* Height of bottom charts */
-    --bottom-width: 120px;      /* Width of bottom charts */
-    --font-size: 8px;           /* Chart axis font */
-    --title-size: 8px;         /* Chart title font */
+    --daily-width: 300px;       /* Daily chart width */
+    --daily-height: 180px;      /* Daily chart height */
+    --bottom-width: 120px;      /* Bottom charts width */
+    --bottom-height: 140px;     /* Bottom charts height */
+    --card-width: 325px;        /* Card width */
+    --card-gap: 25px;           /* Gap between cards */
+    --font-size: 8px;           /* Axis font size */
+    --title-size: 8px;         /* Chart title font size */
 }
 
-/* === Page Styling === */
 body {
     background: #0d1117;
     color: #e6edf3;
@@ -34,30 +33,21 @@ select {
     margin-bottom: 10px;
 }
 
-/* === Container for all athlete cards === */
-#container {
-    display: flex;
-    flex-direction: column;       /* stacked cards */
-    gap: var(--card-gap);
-    align-items: flex-start;      /* left-align */
-}
-
-/* === Athlete Card === */
 .card {
-    width: var(--card-width);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 10px;
     background: #1b1f25;
+    padding: 10px;
     border-radius: 12px;
+    margin-bottom: var(--card-gap);
+    width: var(--card-width);
+    display: inline-block; /* compact card display */
+    vertical-align: top;
 }
 
-/* Athlete header */
 .athlete {
     display: flex;
     align-items: center;
     gap: 10px;
+    margin-bottom: 10px;
 }
 .athlete img {
     width: 40px;
@@ -69,47 +59,50 @@ select {
     margin: 0;
 }
 
-/* === Chart tiles === */
+/* Chart tile wrapper */
 .chart-tile {
     background: #2a2e36;
     border: 1px solid #555;
-    border-radius: 10px;
+    border-radius: 8px;
     padding: 5px;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
 }
 
 /* Daily chart on top */
 .daily-chart-wrapper {
-    width: 100%;
+    width: var(--daily-width);
     height: var(--daily-height);
+    margin: 0 auto var(--card-gap) auto;
 }
 .daily-chart-wrapper canvas {
     width: 100% !important;
     height: 100% !important;
 }
 
-/* Bottom 1x3 charts */
+/* Bottom charts: 1x3 layout */
 .bottom-charts {
     display: flex;
     justify-content: space-between;
     gap: 5px;
 }
-
 .bottom-charts .chart-tile {
     width: var(--bottom-width);
     height: var(--bottom-height);
 }
-
-.chart-tile h3 {
-    margin: 0 0 5px 0;
-    font-size: var(--title-size);
-    color: #c9d1d9;
+.bottom-charts .chart-tile canvas {
+    flex: 1;
+    width: 100% !important;
 }
 
-/* Unit selector */
+/* Chart title styling */
+.chart-tile h3 {
+    margin: 0 0 3px 0;
+    font-size: var(--title-size);
+    color: #c9d1d9;
+    text-align: center;
+}
+
 .unit-toggle {
     margin-bottom: 10px;
 }
@@ -136,13 +129,10 @@ select {
 <script>
 let athletesData;
 let monthNames;
-const CHARTS = {}; // chart references
+const CHARTS = {};
+const FONT_SIZE = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size'));
+const TITLE_SIZE = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--title-size'));
 
-// === Chart font & title constants ===
-const FONT_SIZE = 8;
-const TITLE_SIZE = 12;
-
-// === Goal line plugin ===
 Chart.register({
   id: "goalLine",
   afterDatasetsDraw(chart, args, pluginOptions) {
@@ -160,7 +150,6 @@ Chart.register({
   }
 });
 
-// === Load data ===
 async function loadData(activityType="All") {
     const response = await fetch("data/athletes.json");
     const data = await response.json();
@@ -186,12 +175,10 @@ function populateActivityFilter(){
     if (!athletesData) return;
     const found = new Set();
     Object.values(athletesData).forEach(a => {
-        if (Array.isArray(a.activity_types)) {
-            a.activity_types.forEach(t => found.add(t));
-        }
+        if (Array.isArray(a.activity_types)) a.activity_types.forEach(t => found.add(t));
     });
     Array.from(found).sort().forEach(t => {
-        if (![...select.options].some(opt => opt.value === t)){
+        if (![...select.options].some(o => o.value===t)){
             const opt = document.createElement("option");
             opt.value = t;
             opt.textContent = t;
@@ -207,7 +194,6 @@ function destroyChartIfExists(id){
     }
 }
 
-// === Render dashboard ===
 function renderDashboard(activityType="All") {
     const container = document.getElementById("container");
     container.innerHTML = "";
@@ -215,16 +201,13 @@ function renderDashboard(activityType="All") {
     const monthIndex = parseInt(document.getElementById("dailyMonthSelector").value);
 
     Object.entries(athletesData).forEach(([alias, athlete]) => {
-
         if (activityType !== "All" && athlete.activity_types && !athlete.activity_types.includes(activityType)) return;
 
         const monthlyDistanceKm = athlete.monthly_distances;
         const monthlyDistanceMi = monthlyDistanceKm.map(d => +(d*0.621371).toFixed(2));
         const monthlyTime = athlete.monthly_time;
-
         const dailyDistanceKm = (athlete.daily_distance_km && athlete.daily_distance_km[monthIndex]) ? athlete.daily_distance_km[monthIndex] : [];
         const dailyDistanceMi = dailyDistanceKm.map(d => +(d*0.621371).toFixed(2));
-
         const EXTRA_GOAL = 480;
         const extraMonths = monthNames.slice(-2);
         const extraTime = monthlyTime.slice(-2);
@@ -292,21 +275,21 @@ function renderDashboard(activityType="All") {
         CHARTS[`monthChart-${alias}`] = new Chart(document.getElementById(`monthChart-${alias}`), {
             type:"bar",
             data:{ labels: monthNames, datasets:[{ data: monthlyDistanceMi, backgroundColor:"rgba(75,192,192,0.6)", barThickness:15 }] },
-            options:{ responsive:true, maintainAspectRatio:true, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ font:{ size: FONT_SIZE } } }, x:{ ticks:{ font:{ size: FONT_SIZE } } } } }
+            options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ font:{ size: FONT_SIZE } } }, x:{ ticks:{ font:{ size: FONT_SIZE } } } } }
         });
 
         // === Monthly Time Chart ===
         CHARTS[`monthTimeChart-${alias}`] = new Chart(document.getElementById(`monthTimeChart-${alias}`), {
             type:"bar",
             data:{ labels: monthNames, datasets:[{ data: monthlyTime, backgroundColor:"rgba(255,159,64,0.6)", barThickness:15 }] },
-            options:{ responsive:true, maintainAspectRatio:true, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ font:{ size: FONT_SIZE } } }, x:{ ticks:{ font:{ size: FONT_SIZE } } } } }
+            options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ font:{ size: FONT_SIZE } } }, x:{ ticks:{ font:{ size: FONT_SIZE } } } } }
         });
 
         // === Extra Goal Chart ===
         CHARTS[`extraChart-${alias}`] = new Chart(document.getElementById(`extraChart-${alias}`), {
             type:"bar",
             data:{ labels: extraMonths, datasets:[{ data: extraTime, backgroundColor:"rgba(255,159,64,0.6)", barThickness:15 }] },
-            options:{ responsive:true, maintainAspectRatio:true, plugins:{ legend:{ display:false }, goalLine:{ lineAt:EXTRA_GOAL, color:"blue" } }, scales:{ y:{ beginAtZero:true, ticks:{ font:{ size: FONT_SIZE }, suggestedMax: Math.max(...extraTime, EXTRA_GOAL)+60 }, x:{ ticks:{ font:{ size: FONT_SIZE } } } } } }
+            options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false }, goalLine:{ lineAt:EXTRA_GOAL, color:"blue" } }, scales:{ y:{ beginAtZero:true, ticks:{ font:{ size: FONT_SIZE }, suggestedMax: Math.max(...extraTime, EXTRA_GOAL)+60 }, x:{ ticks:{ font:{ size: FONT_SIZE } } } } } }
         });
 
         document.getElementById(`unit-${alias}`).addEventListener("change", e=>{
