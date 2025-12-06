@@ -7,14 +7,14 @@
 
 <style>
 :root {
-    --daily-width: 315px;       /* Daily chart width */
+    --daily-width: 310px;       /* Daily chart width */
     --daily-height: 180px;      /* Daily chart height */
     --bottom-width: 130px;      /* Bottom charts width */
     --bottom-height: 140px;     /* Bottom charts height */
     --card-width: 350px;        /* Card width */
     --card-gap: 20px;           /* Gap between cards */
     --font-size: 8px;           /* Axis font size */
-    --title-size: 8px;          /* Chart title font size */
+    --title-size: 10px;         /* Chart title font size */
 }
 
 body {
@@ -68,7 +68,7 @@ select {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
 }
 
 /* Daily chart on top */
@@ -93,8 +93,8 @@ select {
     height: var(--bottom-height);
 }
 .bottom-charts .chart-tile canvas {
+    flex: 1;
     width: 100% !important;
-    height: 100% !important;
 }
 
 /* Chart title styling */
@@ -156,7 +156,7 @@ async function loadData(activityType="All") {
     const response = await fetch("data/athletes.json");
     const data = await response.json();
     athletesData = data.athletes;
-    monthNames = data.month_names.map(m => m.substring(0,3)); // abbreviated months
+    monthNames = data.month_names.map(m => m.substr(0,3)); // abbreviated months
 
     const monthSelector = document.getElementById("dailyMonthSelector");
     monthSelector.innerHTML = "";
@@ -258,10 +258,10 @@ function renderDashboard(activityType="All") {
         destroyChartIfExists(`extraChart-${alias}`);
         destroyChartIfExists(`dailyChart-${alias}`);
 
-        // === Daily Chart ===
+        // Daily Chart
         CHARTS[`dailyChart-${alias}`] = new Chart(document.getElementById(`dailyChart-${alias}`), {
             type: "bar",
-            data:{ labels: dailyDistanceMi.map((_,i)=>i+1), datasets:[{ data: dailyDistanceMi, backgroundColor:"rgba(75,192,192,0.8)", minBarLength:2, barThickness:12 }] },
+            data:{ labels: dailyDistanceMi.map((_,i)=>i+1), datasets:[{ data: dailyDistanceMi, backgroundColor:"rgba(75,192,192,0.8)", minBarLength:2, barThickness:15 }] },
             options:{ 
                 responsive:true,
                 maintainAspectRatio:true,
@@ -273,34 +273,39 @@ function renderDashboard(activityType="All") {
             }
         });
 
-        // === Bottom charts options ===
-        const bottomOptions = {
+        // Monthly Distance Chart
+        CHARTS[`monthChart-${alias}`] = new Chart(document.getElementById(`monthChart-${alias}`), {
             type:"bar",
-            data: null, // assigned per chart
+            data:{ labels: monthNames, datasets:[{ data: monthlyDistanceMi, backgroundColor:"rgba(75,192,192,0.6)", barThickness:15 }] },
+            options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ font:{ size: FONT_SIZE } } }, x:{ ticks:{ font:{ size: FONT_SIZE } } } } }
+        });
+
+        // Monthly Time Chart
+        CHARTS[`monthTimeChart-${alias}`] = new Chart(document.getElementById(`monthTimeChart-${alias}`), {
+            type:"bar",
+            data:{ labels: monthNames, datasets:[{ data: monthlyTime, backgroundColor:"rgba(255,159,64,0.6)", barThickness:15 }] },
+            options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ font:{ size: FONT_SIZE } } }, x:{ ticks:{ font:{ size: FONT_SIZE } } } } }
+        });
+
+        // Extra Phys Goal Chart
+        CHARTS[`extraChart-${alias}`] = new Chart(document.getElementById(`extraChart-${alias}`), {
+            type:"bar",
+            data:{ labels: extraMonths, datasets:[{ data: extraTime, backgroundColor:"rgba(255,159,64,0.6)", barThickness:15 }] },
             options:{
                 responsive:true,
                 maintainAspectRatio:false,
-                plugins:{ legend:{ display:false } },
+                plugins:{
+                    legend:{ display:false },
+                    goalLine:{ lineAt: EXTRA_GOAL, color:"blue" } // ensure line shows
+                },
                 scales:{
-                    y:{ beginAtZero:true, ticks:{ font:{ size: FONT_SIZE } } },
+                    y:{ beginAtZero:true, ticks:{ font:{ size: FONT_SIZE }, suggestedMax: Math.max(...extraTime, EXTRA_GOAL)+60 } },
                     x:{ ticks:{ font:{ size: FONT_SIZE } } }
                 }
             }
-        };
+        });
 
-        // Monthly Distance
-        bottomOptions.data = { labels: monthNames, datasets:[{ data: monthlyDistanceMi, backgroundColor:"rgba(75,192,192,0.6)", barThickness:12 }] };
-        CHARTS[`monthChart-${alias}`] = new Chart(document.getElementById(`monthChart-${alias}`), bottomOptions);
-
-        // Monthly Time
-        bottomOptions.data = { labels: monthNames, datasets:[{ data: monthlyTime, backgroundColor:"rgba(255,159,64,0.6)", barThickness:12 }] };
-        CHARTS[`monthTimeChart-${alias}`] = new Chart(document.getElementById(`monthTimeChart-${alias}`), bottomOptions);
-
-        // Extra Phys Goal
-        bottomOptions.data = { labels: extraMonths, datasets:[{ data: extraTime, backgroundColor:"rgba(255,159,64,0.6)", barThickness:12 }] };
-        bottomOptions.options.plugins.goalLine = { lineAt: EXTRA_GOAL, color:"blue" };
-        CHARTS[`extraChart-${alias}`] = new Chart(document.getElementById(`extraChart-${alias}`), bottomOptions);
-
+        // Unit toggle
         document.getElementById(`unit-${alias}`).addEventListener("change", e=>{
             const unit = e.target.value;
             let monthlyData = unit==="km"? monthlyDistanceKm: monthlyDistanceMi;
