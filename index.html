@@ -7,7 +7,7 @@
 
 <style>
 :root {
-    --daily-width: 310px;       /* Daily chart width */
+    --daily-width: 315px;       /* Daily chart width */
     --daily-height: 180px;      /* Daily chart height */
     --bottom-width: 130px;      /* Bottom charts width */
     --bottom-height: 140px;     /* Bottom charts height */
@@ -261,7 +261,7 @@ function renderDashboard(activityType="All") {
         // === Daily Chart ===
         CHARTS[`dailyChart-${alias}`] = new Chart(document.getElementById(`dailyChart-${alias}`), {
             type: "bar",
-            data:{ labels: dailyDistanceMi.map((_,i)=>i+1), datasets:[{ data: dailyDistanceMi, backgroundColor:"rgba(75,192,192,0.8)", minBarLength:2, barThickness:15 }] },
+            data:{ labels: dailyDistanceMi.map((_,i)=>i+1), datasets:[{ data: dailyDistanceMi, backgroundColor:"rgba(75,192,192,0.8)", minBarLength:2, barThickness:12 }] },
             options:{ 
                 responsive:true,
                 maintainAspectRatio:true,
@@ -289,15 +289,15 @@ function renderDashboard(activityType="All") {
         };
 
         // Monthly Distance
-        bottomOptions.data = { labels: monthNames, datasets:[{ data: monthlyDistanceMi, backgroundColor:"rgba(75,192,192,0.6)", barThickness:15 }] };
+        bottomOptions.data = { labels: monthNames, datasets:[{ data: monthlyDistanceMi, backgroundColor:"rgba(75,192,192,0.6)", barThickness:12 }] };
         CHARTS[`monthChart-${alias}`] = new Chart(document.getElementById(`monthChart-${alias}`), bottomOptions);
 
         // Monthly Time
-        bottomOptions.data = { labels: monthNames, datasets:[{ data: monthlyTime, backgroundColor:"rgba(255,159,64,0.6)", barThickness:15 }] };
+        bottomOptions.data = { labels: monthNames, datasets:[{ data: monthlyTime, backgroundColor:"rgba(255,159,64,0.6)", barThickness:12 }] };
         CHARTS[`monthTimeChart-${alias}`] = new Chart(document.getElementById(`monthTimeChart-${alias}`), bottomOptions);
 
         // Extra Phys Goal
-        bottomOptions.data = { labels: extraMonths, datasets:[{ data: extraTime, backgroundColor:"rgba(255,159,64,0.6)", barThickness:15 }] };
+        bottomOptions.data = { labels: extraMonths, datasets:[{ data: extraTime, backgroundColor:"rgba(255,159,64,0.6)", barThickness:12 }] };
         bottomOptions.options.plugins.goalLine = { lineAt: EXTRA_GOAL, color:"blue" };
         CHARTS[`extraChart-${alias}`] = new Chart(document.getElementById(`extraChart-${alias}`), bottomOptions);
 
