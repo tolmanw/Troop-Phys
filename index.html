@@ -99,7 +99,6 @@ select {
     color: #c9d1d9;
     text-align: center;
 }
-
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -148,8 +147,6 @@ async function loadData(activityType="All") {
     const response = await fetch("data/athletes.json");
     const data = await response.json();
     athletesData = data.athletes;
-
-    // Abbreviated month names for display
     monthNames = data.month_names.map(m => m.substr(0,3));
 
     const monthSelector = document.getElementById("dailyMonthSelector");
@@ -190,20 +187,37 @@ function destroyChartIfExists(id){
     }
 }
 
-function renderDashboard(activityType="All") {
+function updateDailyChart(alias, monthIndex){
+    const athlete = athletesData[alias];
+    const dailyDistanceMi = athlete.daily_distance_km[monthIndex].map(d => +(d*0.621371).toFixed(2));
+    const chartId = `dailyChart-${alias}`;
+    if(CHARTS[chartId]) {
+        CHARTS[chartId].destroy();
+        delete CHARTS[chartId];
+    }
+
+    CHARTS[chartId] = new Chart(document.getElementById(chartId), {
+        type: "bar",
+        data:{ labels: dailyDistanceMi.map((_,i)=>i+1), datasets:[{ data: dailyDistanceMi, backgroundColor:"rgba(75,192,192,0.8)", minBarLength:2, barThickness:15 }] },
+        options:{ responsive:true, maintainAspectRatio:true, plugins:{ legend:{ display:false } }, scales:{ x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0, font:{ size: FONT_SIZE } } }, y:{ beginAtZero:true, ticks:{ font:{ size: FONT_SIZE } } } } }
+    });
+
+    document.querySelector(`#dailyChart-${alias}`).parentElement.querySelector("h3").textContent =
+        `Daily Distance - ${monthNames[monthIndex]}`;
+}
+
+function renderDashboard(activityType="All"){
     const container = document.getElementById("container");
     container.innerHTML = "";
 
     const monthIndex = parseInt(document.getElementById("dailyMonthSelector").value);
     const prevMonthIndex = monthIndex - 1 >= 0 ? monthIndex - 1 : 0;
 
-    Object.entries(athletesData).forEach(([alias, athlete]) => {
-        if (activityType !== "All" && athlete.activity_types && !athlete.activity_types.includes(activityType)) return;
+    Object.entries(athletesData).forEach(([alias, athlete])=>{
+        if(activityType !== "All" && athlete.activity_types && !athlete.activity_types.includes(activityType)) return;
 
-        const monthlyDistanceMi = athlete.monthly_distances.map(d => +(d*0.621371).toFixed(2));
+        const monthlyDistanceMi = athlete.monthly_distances.map(d=> +(d*0.621371).toFixed(2));
         const monthlyTime = athlete.monthly_time;
-
-        const dailyDistanceMi = athlete.daily_distance_km[monthIndex].map(d => +(d*0.621371).toFixed(2));
 
         const EXTRA_GOAL = 480;
         const extraMonths = [monthNames[prevMonthIndex], monthNames[monthIndex]];
@@ -245,42 +259,45 @@ function renderDashboard(activityType="All") {
         destroyChartIfExists(`extraChart-${alias}`);
         destroyChartIfExists(`dailyChart-${alias}`);
 
-        // Daily Chart
-        CHARTS[`dailyChart-${alias}`] = new Chart(document.getElementById(`dailyChart-${alias}`), {
-            type: "bar",
-            data:{ labels: dailyDistanceMi.map((_,i)=>i+1), datasets:[{ data: dailyDistanceMi, backgroundColor:"rgba(75,192,192,0.8)", minBarLength:2, barThickness:15 }] },
-            options:{ responsive:true, maintainAspectRatio:true, plugins:{ legend:{ display:false } }, scales:{ x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0, font:{ size: FONT_SIZE } } }, y:{ beginAtZero:true, ticks:{ font:{ size: FONT_SIZE } } } } }
-        });
-
-        // Monthly Distance Chart (2 months)
+        // Bottom charts (always previous + current month)
         CHARTS[`monthChart-${alias}`] = new Chart(document.getElementById(`monthChart-${alias}`), {
             type:"bar",
             data:{ labels: extraMonths, datasets:[{ data: [monthlyDistanceMi[prevMonthIndex], monthlyDistanceMi[monthIndex]], backgroundColor:"rgba(75,192,192,0.6)", barThickness:15 }] },
             options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ font:{ size: FONT_SIZE } } }, x:{ ticks:{ font:{ size: FONT_SIZE } } } } }
         });
 
-        // Monthly Time Chart (2 months)
         CHARTS[`monthTimeChart-${alias}`] = new Chart(document.getElementById(`monthTimeChart-${alias}`), {
             type:"bar",
             data:{ labels: extraMonths, datasets:[{ data: [monthlyTime[prevMonthIndex], monthlyTime[monthIndex]], backgroundColor:"rgba(255,159,64,0.6)", barThickness:15 }] },
             options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ font:{ size: FONT_SIZE } } }, x:{ ticks:{ font:{ size: FONT_SIZE } } } } }
         });
 
-        // Extra Goal Chart (2 months)
         CHARTS[`extraChart-${alias}`] = new Chart(document.getElementById(`extraChart-${alias}`), {
             type:"bar",
             data:{ labels: extraMonths, datasets:[{ data: extraTime, backgroundColor:"rgba(255,159,64,0.6)", barThickness:15 }] },
             options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false }, goalLine:{ lineAt:EXTRA_GOAL, color:"blue" } }, scales:{ y:{ beginAtZero:true, ticks:{ font:{ size: FONT_SIZE }, suggestedMax: Math.max(...extraTime, EXTRA_GOAL)+60 }, x:{ ticks:{ font:{ size: FONT_SIZE } } } } } }
         });
 
+        // Initial daily chart for selected month
+        updateDailyChart(alias, monthIndex);
     });
 }
 
+// Event listeners
 document.getElementById("activityFilter").addEventListener("change", e => renderDashboard(e.target.value));
-document.getElementById("dailyMonthSelector").addEventListener("change", () => renderDashboard(document.getElementById("activityFilter").value));
+document.getElementById("dailyMonthSelector").addEventListener("change", ()=>{
+    const monthIndex = parseInt(document.getElementById("dailyMonthSelector").value);
+    Object.keys(athletesData).forEach(alias=>{
+        const activityType = document.getElementById("activityFilter").value;
+        const athlete = athletesData[alias];
+        if(activityType === "All" || (athlete.activity_types && athlete.activity_types.includes(activityType))){
+            updateDailyChart(alias, monthIndex);
+        }
+    });
+});
 
+// Load data
 loadData();
 </script>
-
 </body>
 </html>
