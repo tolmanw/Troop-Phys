@@ -125,6 +125,7 @@ let monthNames;
 const CHARTS = {};
 const FONT_SIZE = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size'));
 const TITLE_SIZE = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--title-size'));
+const BAR_THICKNESS = 15; // Global bar thickness
 
 async function loadData(activityType="All") {
     const response = await fetch("data/athletes.json");
@@ -179,14 +180,13 @@ function updateDailyChart(alias, monthIndex){
         delete CHARTS[chartId];
     }
 
-    // Uniform bar color
     const barColors = dailyDistanceMi.map(()=> "rgba(75,192,192,0.8)");
 
     CHARTS[chartId] = new Chart(document.getElementById(chartId), {
         type: "bar",
         data:{
             labels: dailyDistanceMi.map((_,i)=>i+1),
-            datasets:[{ data: dailyDistanceMi, backgroundColor: barColors, minBarLength:2, barThickness:15 }]
+            datasets:[{ data: dailyDistanceMi, backgroundColor: barColors, minBarLength:2, barThickness: BAR_THICKNESS }]
         },
         options:{
             responsive:true,
@@ -269,18 +269,18 @@ function renderDashboard(activityType="All"){
         // Monthly distance
         CHARTS[`monthChart-${alias}`] = new Chart(document.getElementById(`monthChart-${alias}`), {
             type:"bar",
-            data:{ labels: extraMonths, datasets:[{ data: [monthlyDistanceMi[prevMonthIndex], monthlyDistanceMi[monthIndex]], backgroundColor:"rgba(75,192,192,0.6)", barThickness:15 }] },
+            data:{ labels: extraMonths, datasets:[{ data: [monthlyDistanceMi[prevMonthIndex], monthlyDistanceMi[monthIndex]], backgroundColor:"rgba(75,192,192,0.6)", barThickness: BAR_THICKNESS }] },
             options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ font:{ size: FONT_SIZE } } }, x:{ ticks:{ font:{ size: FONT_SIZE } } } } }
         });
 
         // Monthly time
         CHARTS[`monthTimeChart-${alias}`] = new Chart(document.getElementById(`monthTimeChart-${alias}`), {
             type:"bar",
-            data:{ labels: extraMonths, datasets:[{ data: [monthlyTime[prevMonthIndex], monthlyTime[monthIndex]], backgroundColor:"rgba(255,159,64,0.6)", barThickness:15 }] },
+            data:{ labels: extraMonths, datasets:[{ data: [monthlyTime[prevMonthIndex], monthlyTime[monthIndex]], backgroundColor:"rgba(255,159,64,0.6)", barThickness: BAR_THICKNESS }] },
             options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ font:{ size: FONT_SIZE } } }, x:{ ticks:{ font:{ size: FONT_SIZE } } } } }
         });
 
-        // Extra Phys Goal chart with 8-hour blue goal line
+        // Extra Phys Goal chart with dashed complementary goal line
         const goalLinePlugin = {
             id: 'goalLine',
             afterDatasetsDraw(chart) {
@@ -289,10 +289,11 @@ function renderDashboard(activityType="All"){
                 if (yPos >= top && yPos <= bottom) {
                     ctx.save();
                     ctx.beginPath();
+                    ctx.setLineDash([5,5]); // dashed line
                     ctx.moveTo(left, yPos);
                     ctx.lineTo(right, yPos);
                     ctx.lineWidth = 2;
-                    ctx.strokeStyle = 'blue';
+                    ctx.strokeStyle = 'rgba(255,99,71,1)'; // complementary color
                     ctx.stroke();
                     ctx.restore();
                 }
@@ -301,7 +302,7 @@ function renderDashboard(activityType="All"){
 
         CHARTS[`extraChart-${alias}`] = new Chart(document.getElementById(`extraChart-${alias}`), {
             type:"bar",
-            data:{ labels: extraMonths, datasets:[{ data: extraTime, backgroundColor:"rgba(255,159,64,0.6)", barThickness:15 }] },
+            data:{ labels: extraMonths, datasets:[{ data: extraTime, backgroundColor:"rgba(255,159,64,0.6)", barThickness: BAR_THICKNESS }] },
             options:{
                 responsive:true,
                 maintainAspectRatio:false,
