@@ -175,10 +175,7 @@ function updateDailyChart(alias, monthIndex){
     const athlete = athletesData[alias];
     const dailyDistanceMi = athlete.daily_distance_km[monthIndex].map(d => +(d*0.621371).toFixed(2));
     const chartId = `dailyChart-${alias}`;
-    if(CHARTS[chartId]) {
-        CHARTS[chartId].destroy();
-        delete CHARTS[chartId];
-    }
+    destroyChartIfExists(chartId);
 
     const barColors = dailyDistanceMi.map(()=> "rgba(75,192,192,0.8)");
 
@@ -221,14 +218,15 @@ function renderDashboard(activityType="All"){
     const prevMonthIndex = monthIndex - 1 >= 0 ? monthIndex - 1 : 0;
 
     Object.entries(athletesData).forEach(([alias, athlete])=>{
+        // Skip filter if activity_types missing
         if(activityType !== "All" && athlete.activity_types && !athlete.activity_types.includes(activityType)) return;
 
         const monthlyDistanceMi = athlete.monthly_distances.map(d=> +(d*0.621371).toFixed(2));
-        const monthlyTime = athlete.monthly_time;
+        const monthlyTime = athlete.monthly_time || [0,0];
 
         const EXTRA_GOAL = 480; // 8 hours
         const extraMonths = [monthNames[prevMonthIndex], monthNames[monthIndex]];
-        const extraTime = [monthlyTime[prevMonthIndex], monthlyTime[monthIndex]];
+        const extraTime = [monthlyTime[prevMonthIndex] || 0, monthlyTime[monthIndex] || 0];
 
         const card = document.createElement("div");
         card.className = "card";
@@ -266,14 +264,14 @@ function renderDashboard(activityType="All"){
         destroyChartIfExists(`extraChart-${alias}`);
         destroyChartIfExists(`dailyChart-${alias}`);
 
-        // Monthly distance
+        // Monthly distance chart
         CHARTS[`monthChart-${alias}`] = new Chart(document.getElementById(`monthChart-${alias}`), {
             type:"bar",
             data:{ labels: extraMonths, datasets:[{ data: [monthlyDistanceMi[prevMonthIndex], monthlyDistanceMi[monthIndex]], backgroundColor:"rgba(75,192,192,0.6)", barThickness: BAR_THICKNESS }] },
             options:{
                 responsive:true,
                 maintainAspectRatio:false,
-                layout:{ padding:{ bottom:8 } },    // *** ADDED ***
+                layout:{ padding:{ bottom:8 } },
                 plugins:{ legend:{ display:false } },
                 scales:{
                     y:{ beginAtZero:true, ticks:{ font:{ size: FONT_SIZE } } },
@@ -282,14 +280,14 @@ function renderDashboard(activityType="All"){
             }
         });
 
-        // Monthly time
+        // Monthly time chart
         CHARTS[`monthTimeChart-${alias}`] = new Chart(document.getElementById(`monthTimeChart-${alias}`), {
             type:"bar",
-            data:{ labels: extraMonths, datasets:[{ data: [monthlyTime[prevMonthIndex], monthlyTime[monthIndex]], backgroundColor:"rgba(255,159,64,0.6)", barThickness: BAR_THICKNESS }] },
+            data:{ labels: extraMonths, datasets:[{ data: [monthlyTime[prevMonthIndex] || 0, monthlyTime[monthIndex] || 0], backgroundColor:"rgba(255,159,64,0.6)", barThickness: BAR_THICKNESS }] },
             options:{
                 responsive:true,
                 maintainAspectRatio:false,
-                layout:{ padding:{ bottom:8 } },    // *** ADDED ***
+                layout:{ padding:{ bottom:8 } },
                 plugins:{ legend:{ display:false } },
                 scales:{
                     y:{ beginAtZero:true, ticks:{ font:{ size: FONT_SIZE } } },
@@ -298,7 +296,7 @@ function renderDashboard(activityType="All"){
             }
         });
 
-        // Extra Phys Goal with dashed line
+        // Extra Phys Goal chart
         const goalLinePlugin = {
             id: 'goalLine',
             afterDatasetsDraw(chart) {
@@ -324,7 +322,7 @@ function renderDashboard(activityType="All"){
             options:{
                 responsive:true,
                 maintainAspectRatio:false,
-                layout:{ padding:{ bottom:8 } },    // *** ADDED ***
+                layout:{ padding:{ bottom:8 } },
                 plugins:{ legend:{ display:false } },
                 scales:{
                     y:{ beginAtZero:true, max: Math.max(...extraTime, EXTRA_GOAL)+220, ticks:{ font:{ size: FONT_SIZE } } },
@@ -346,6 +344,7 @@ document.getElementById("dailyMonthSelector").addEventListener("change", ()=>{
     Object.keys(athletesData).forEach(alias=>{
         const activityType = document.getElementById("activityFilter").value;
         const athlete = athletesData[alias];
+        // Always render daily chart even if activity_types missing
         if(activityType === "All" || (athlete.activity_types && athlete.activity_types.includes(activityType))){
             updateDailyChart(alias, monthIndex);
         }
