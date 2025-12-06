@@ -6,6 +6,7 @@
 <title>Strava Dashboard</title>
 
 <style>
+/* === Original dark theme styling === */
 body {
     background: #0d1117;
     color: #e6edf3;
@@ -22,33 +23,22 @@ select {
     margin-bottom: 10px;
 }
 
-/* === Fixed grid for tiles === */
-#container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, 300px); /* fixed width tiles */
-    grid-auto-rows: 400px; /* fixed height tiles */
-    gap: 20px; /* even spacing */
-    justify-content: center;
-}
-
-/* Card container */
 .card {
     background: #1b1f25;
     border-radius: 12px;
     padding: 10px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    margin-bottom: 20px;
     box-shadow: 0 0 10px #0005;
-    width: 300px;  /* fixed width */
-    height: 400px; /* fixed height */
+    /* === FIXED TILE SIZE === */
+    width: 320px;       /* adjust to make tile larger/smaller */
+    flex-shrink: 0;
 }
 
-/* Athlete section */
 .athlete {
     display: flex;
     align-items: center;
     gap: 10px;
+    margin-bottom: 10px;
 }
 .athlete img {
     width: 40px;
@@ -56,75 +46,53 @@ select {
     border-radius: 50%;
 }
 .athlete h2 {
-    font-size: 1.2em; /* scaled font */
+    font-size: 1em;
     margin: 0;
 }
 
-/* Chart containers */
 .charts-grid {
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
-.charts-top, .charts-bottom {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-}
 
-/* Individual chart container */
 .chart-container {
     background: #0d1117;
     border-radius: 10px;
-    padding: 5px;
-    height: 120px; /* fixed chart height */
+    padding: 10px;
+    height: 160px; /* FIXED CHART HEIGHT - adjust as needed */
 }
-.chart-container canvas {
+
+canvas {
+    /* Fill the container but do not stretch text */
     width: 100% !important;
     height: 100% !important;
 }
 
-.daily-chart-wrapper {
-    height: 160px;
-}
-.daily-chart-wrapper canvas {
-    height: 100% !important;
-}
-
-.card h3 {
-    font-size: 1em;
-    margin: 0 0 5px 0;
+h3 {
+    margin-bottom: 5px;
+    margin-top: 5px;
+    font-size: 0.9em;
+    color: #c9d1d9;
+    text-align: center;
 }
 
-/* Unit toggle styling */
 .unit-toggle {
     margin-bottom: 10px;
-    font-size: 0.9em;
+    font-size: 0.8em;
 }
 
-/* === Mobile scaling === */
-@media (max-width: 768px) {
-    #container {
-        grid-template-columns: repeat(auto-fit, 250px);
-        grid-auto-rows: 330px;
-        gap: 15px;
-    }
-    .card {
-        width: 250px;
-        height: 330px;
-    }
-    .chart-container {
-        height: 100px;
-    }
-    .daily-chart-wrapper {
-        height: 140px;
-    }
-    .athlete h2 {
-        font-size: 1em;
-    }
-    .card h3 {
-        font-size: 0.9em;
-    }
+/* === Daily chart wrapper fixes expansion === */
+.daily-chart-wrapper {
+    height: 160px; /* match chart-container height */
+    overflow: hidden;
+}
+
+.container-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
 }
 </style>
 
@@ -137,12 +105,6 @@ select {
 <label>Select Activity Type:</label>
 <select id="activityFilter">
     <option value="All">All</option>
-    <option value="Run">Run</option>
-    <option value="Trail Run">Trail Run</option>
-    <option value="Walk">Walk</option>
-    <option value="Hike">Hike</option>
-    <option value="Ride">Ride</option>
-    <option value="Virtual Ride">Virtual Ride</option>
 </select>
 
 <br><br>
@@ -150,13 +112,14 @@ select {
 <label>Select Month for Daily Charts:</label>
 <select id="dailyMonthSelector"></select>
 
-<div id="container"></div>
+<div class="container-wrapper" id="container"></div>
 
 <script>
 let athletesData;
 let monthNames;
-const CHARTS = {}; // chart references
+const CHARTS = {}; // keep chart references
 
+// Goal line plugin
 Chart.register({
   id: "goalLine",
   afterDatasetsDraw(chart, args, pluginOptions) {
@@ -199,16 +162,10 @@ function populateActivityFilter(){
     if (!athletesData) return;
     const found = new Set();
     Object.values(athletesData).forEach(a => {
-        if (Array.isArray(a.activity_types)) {
-            a.activity_types.forEach(t => found.add(t));
-        }
+        if (Array.isArray(a.activity_types)) a.activity_types.forEach(t => found.add(t));
     });
     Array.from(found).sort().forEach(t => {
-        let exists = false;
-        for (let i=0;i<select.options.length;i++){
-            if (select.options[i].value === t) { exists = true; break; }
-        }
-        if (!exists){
+        if (![...select.options].some(o=>o.value===t)){
             const opt = document.createElement("option");
             opt.value = t;
             opt.textContent = t;
@@ -244,6 +201,7 @@ function renderDashboard(activityType="All") {
         const EXTRA_GOAL = 480;
         const extraMonths = monthNames.slice(-2);
         const extraTime = monthlyTime.slice(-2);
+        const extraColors = extraTime.map(t => t >= EXTRA_GOAL ? "rgba(0,200,0,0.7)" : "rgba(200,0,0,0.7)");
 
         const card = document.createElement("div");
         card.className = "card";
@@ -251,9 +209,7 @@ function renderDashboard(activityType="All") {
         card.innerHTML = `
             <div class="athlete">
                 <img src="${athlete.profile}">
-                <div>
-                    <h2>${athlete.display_name}</h2>
-                </div>
+                <div><h2>${athlete.display_name}</h2></div>
             </div>
 
             <div class="unit-toggle">
@@ -265,25 +221,26 @@ function renderDashboard(activityType="All") {
             </div>
 
             <div class="charts-grid">
-                <div class="charts-top chart-container">
+                <div class="chart-container">
                     <h3>Daily Distance - ${monthNames[monthIndex]}</h3>
                     <div class="daily-chart-wrapper">
                         <canvas id="dailyChart-${alias}"></canvas>
                     </div>
                 </div>
-                <div class="charts-bottom">
-                    <div class="chart-container">
-                        <h3>Extra Phys Goal</h3>
-                        <canvas id="extraChart-${alias}"></canvas>
-                    </div>
-                    <div class="chart-container">
-                        <h3>Monthly Distance</h3>
-                        <canvas id="monthChart-${alias}"></canvas>
-                    </div>
-                    <div class="chart-container">
-                        <h3>Monthly Time</h3>
-                        <canvas id="monthTimeChart-${alias}"></canvas>
-                    </div>
+
+                <div class="chart-container">
+                    <h3>Extra Phys Goal</h3>
+                    <canvas id="extraChart-${alias}"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Monthly Distance</h3>
+                    <canvas id="monthChart-${alias}"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Monthly Time</h3>
+                    <canvas id="monthTimeChart-${alias}"></canvas>
                 </div>
             </div>
         `;
@@ -294,29 +251,29 @@ function renderDashboard(activityType="All") {
         destroyChartIfExists(`extraChart-${alias}`);
         destroyChartIfExists(`dailyChart-${alias}`);
 
-        // Charts
+        // Monthly charts - maintainAspectRatio: true keeps text readable
         CHARTS[`monthChart-${alias}`] = new Chart(document.getElementById(`monthChart-${alias}`), {
             type:"bar",
             data:{ labels: monthNames, datasets:[{ data: monthlyDistanceMi, backgroundColor:"rgba(75,192,192,0.6)", barThickness:15 }] },
-            options:{ responsive:false, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ font:{ size:8 } } }, x:{ ticks:{ font:{ size:8 } } } } }
+            options:{ responsive:true, maintainAspectRatio:true, aspectRatio:1.2, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ font:{ size:8 } } }, x:{ ticks:{ font:{ size:8 } } } } }
         });
         
         CHARTS[`monthTimeChart-${alias}`] = new Chart(document.getElementById(`monthTimeChart-${alias}`), {
             type:"bar",
             data:{ labels: monthNames, datasets:[{ data: monthlyTime, backgroundColor:"rgba(255,159,64,0.6)", barThickness:15 }] },
-            options:{ responsive:false, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ font:{ size:8 } } }, x:{ ticks:{ font:{ size:8 } } } } }
+            options:{ responsive:true, maintainAspectRatio:true, aspectRatio:1.2, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ font:{ size:8 } } }, x:{ ticks:{ font:{ size:8 } } } } }
         });
         
         CHARTS[`extraChart-${alias}`] = new Chart(document.getElementById(`extraChart-${alias}`), {
             type:"bar",
             data:{ labels: extraMonths, datasets:[{ data: extraTime, backgroundColor:"rgba(255,159,64,0.6)", barThickness:15 }] },
-            options:{ responsive:false, maintainAspectRatio:false, plugins:{ legend:{ display:false }, goalLine:{ lineAt:EXTRA_GOAL, color:"blue" } }, scales:{ y:{ beginAtZero:true, ticks:{ font:{ size:8 }, suggestedMax: Math.max(...extraTime, EXTRA_GOAL)+60 }, x:{ ticks:{ font:{ size:8 } } } } } }
+            options:{ responsive:true, maintainAspectRatio:true, aspectRatio:1.2, plugins:{ legend:{ display:false }, goalLine:{ lineAt:EXTRA_GOAL, color:"blue" } }, scales:{ y:{ beginAtZero:true, ticks:{ font:{ size:8 }, suggestedMax: Math.max(...extraTime, EXTRA_GOAL)+60 }, x:{ ticks:{ font:{ size:8 } } } } } }
         });
         
         CHARTS[`dailyChart-${alias}`] = new Chart(document.getElementById(`dailyChart-${alias}`), {
             type:"bar",
-            data:{ labels: dailyDistanceMi.map((_,i)=>i+1), datasets:[{ data: dailyDistanceMi, backgroundColor:"rgba(75,192,192,0.8)", minBarLength:2, barThickness:'flex' }] },
-            options:{ responsive:false, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0, font:{ size:8 } } }, y:{ beginAtZero:true, ticks:{ font:{ size:8 } } } } }
+            data:{ labels: dailyDistanceMi.map((_,i)=>i+1), datasets:[{ data: dailyDistanceMi, backgroundColor:"rgba(75,192,192,0.8)", minBarLength:2, barThickness:15 }] },
+            options:{ responsive:true, maintainAspectRatio:true, plugins:{ legend:{ display:false } }, scales:{ x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0, font:{ size:8 } } }, y:{ beginAtZero:true, ticks:{ font:{ size:8 } } } } }
         });
 
         document.getElementById(`unit-${alias}`).addEventListener("change", e=>{
@@ -324,11 +281,11 @@ function renderDashboard(activityType="All") {
             let monthlyData = unit==="km"? monthlyDistanceKm: monthlyDistanceMi;
             let dailyData = unit==="km"? dailyDistanceKm: dailyDistanceMi;
 
-            const mc = CHARTS[`monthChart-${alias}`];
-            if (mc) { mc.data.datasets[0].data = monthlyData; mc.update(); }
+            CHARTS[`monthChart-${alias}`].data.datasets[0].data = monthlyData;
+            CHARTS[`monthChart-${alias}`].update();
 
-            const dc = CHARTS[`dailyChart-${alias}`];
-            if (dc) { dc.data.labels = dailyData.map((_,i)=>i+1); dc.data.datasets[0].data = dailyData; dc.update(); }
+            CHARTS[`dailyChart-${alias}`].data.datasets[0].data = dailyData;
+            CHARTS[`dailyChart-${alias}`].update();
         });
     });
 }
