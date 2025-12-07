@@ -107,13 +107,6 @@ select {
 
 <h1>Troop Dashboard</h1>
 
-<label>Select Activity Type:</label>
-<select id="activityFilter">
-    <option value="All">All</option>
-</select>
-
-<br>
-
 <label>Select Month for Daily Charts:</label>
 <select id="dailyMonthSelector"></select>
 
@@ -143,25 +136,7 @@ async function loadData(activityType="All") {
     });
     monthSelector.selectedIndex = monthNames.length - 1;
 
-    populateActivityFilter();
-    renderDashboard(activityType);
-}
-
-function populateActivityFilter(){
-    const select = document.getElementById("activityFilter");
-    if (!athletesData) return;
-    const found = new Set();
-    Object.values(athletesData).forEach(a => {
-        if (Array.isArray(a.activity_types)) a.activity_types.forEach(t => found.add(t));
-    });
-    Array.from(found).sort().forEach(t => {
-        if (![...select.options].some(o => o.value===t)){
-            const opt = document.createElement("option");
-            opt.value = t;
-            opt.textContent = t;
-            select.appendChild(opt);
-        }
-    });
+    renderDashboard();
 }
 
 function destroyChartIfExists(id){
@@ -218,8 +193,6 @@ function renderDashboard(activityType="All"){
     const prevMonthIndex = monthIndex - 1 >= 0 ? monthIndex - 1 : 0;
 
     Object.entries(athletesData).forEach(([alias, athlete])=>{
-        // Skip filter if activity_types missing
-        if(activityType !== "All" && athlete.activity_types && !athlete.activity_types.includes(activityType)) return;
 
         const monthlyDistanceMi = athlete.monthly_distances.map(d=> +(d*0.621371).toFixed(2));
         const monthlyTime = athlete.monthly_time || [0,0];
@@ -296,7 +269,6 @@ function renderDashboard(activityType="All"){
             }
         });
 
-        // Extra Phys Goal chart
         const goalLinePlugin = {
             id: 'goalLine',
             afterDatasetsDraw(chart) {
@@ -332,26 +304,17 @@ function renderDashboard(activityType="All"){
             plugins:[goalLinePlugin]
         });
 
-        // Initial daily chart
         updateDailyChart(alias, monthIndex);
     });
 }
 
-// Event listeners
-document.getElementById("activityFilter").addEventListener("change", e => renderDashboard(e.target.value));
 document.getElementById("dailyMonthSelector").addEventListener("change", ()=>{
     const monthIndex = parseInt(document.getElementById("dailyMonthSelector").value);
     Object.keys(athletesData).forEach(alias=>{
-        const activityType = document.getElementById("activityFilter").value;
-        const athlete = athletesData[alias];
-        // Always render daily chart even if activity_types missing
-        if(activityType === "All" || (athlete.activity_types && athlete.activity_types.includes(activityType))){
-            updateDailyChart(alias, monthIndex);
-        }
+        updateDailyChart(alias, monthIndex);
     });
 });
 
-// Load data
 loadData();
 </script>
 </body>
