@@ -25,7 +25,7 @@ body {
     font-family: Arial, sans-serif;
     padding: 20px;
     font-size: 14px;
-    position: relative; /* Needed for absolute positioning of the logo */
+    position: relative;
 }
 
 label {
@@ -74,18 +74,6 @@ select {
     margin: 0;
 }
 
-/* Top-right logo */
-#topLogo {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    object-fit: cover;
-    border: 2px solid #555;
-}
-
 .chart-tile {
     background: #2a2e36;
     border: 1px solid #555;
@@ -124,6 +112,17 @@ select {
     font-size: var(--title-size);
     color: #c9d1d9;
     text-align: center;
+}
+
+/* Logo at top right */
+#logo {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
 }
 
 /* --- Mobile Overrides --- */
@@ -181,10 +180,8 @@ select {
 </head>
 <body>
 
-<!-- Top-right circular logo -->
-<img id="topLogo" src="logo.jpeg" alt="Troop Logo">
-
-<h1 style="font-size: 25px; text-align:left;">Troop Dashboard</h1>
+<h1 style="font-size: 25px;">Troop Dashboard</h1>
+<img id="logo" src="logo.jpeg" alt="Logo">
 
 <label style="font-size: 14px;">Daily Distance Month:</label>
 <select id="dailyMonthSelector" style="font-size: 12px; padding: 4px 8px;"></select>
@@ -202,18 +199,6 @@ function getBarThickness() {
         : 8;
 }
 
-// Helper function to get last N months (0-based indices)
-function getLastNMonthIndices(n) {
-    const now = new Date();
-    let indices = [];
-    for (let i = n; i > 0; i--) {
-        let idx = now.getMonth() - i + 1;
-        if (idx < 0) idx += 12;
-        indices.push(idx);
-    }
-    return indices;
-}
-
 async function loadData() {
     const response = await fetch("data/athletes.json");
     const data = await response.json();
@@ -222,16 +207,13 @@ async function loadData() {
 
     const monthSelector = document.getElementById("dailyMonthSelector");
     monthSelector.innerHTML = "";
-
-    // Show last 3 months in dropdown
-    const lastThreeMonths = getLastNMonthIndices(3);
-    lastThreeMonths.forEach(idx => {
+    monthNames.forEach((m,i)=>{
         const opt = document.createElement("option");
-        opt.value = idx;
-        opt.textContent = monthNames[idx];
+        opt.value = i;
+        opt.textContent = m;
         monthSelector.appendChild(opt);
     });
-    monthSelector.selectedIndex = 2; // default to the most recent month
+    monthSelector.selectedIndex = monthNames.length - 1;
 
     renderDashboard();
 }
@@ -273,7 +255,11 @@ function updateDailyChart(alias, monthIndex){
                         }
                     }
                 },
-                y:{ beginAtZero:true, ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } }
+                y:{
+                    beginAtZero:true,
+                    suggestedMin: 0,
+                    ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } }
+                }
             }
         }
     });
@@ -286,17 +272,15 @@ function renderDashboard(){
     const container = document.getElementById("container");
     container.innerHTML = "";
 
-    // Determine last two months for bottom charts
-    const now = new Date();
-    const monthIndex = now.getMonth();
-    const prevMonthIndex = monthIndex - 1 >= 0 ? monthIndex - 1 : 11;
-    const extraMonths = [monthNames[prevMonthIndex], monthNames[monthIndex]];
+    const monthIndex = parseInt(document.getElementById("dailyMonthSelector").value);
+    const prevMonthIndex = monthIndex - 1 >= 0 ? monthIndex - 1 : 0;
 
     Object.entries(athletesData).forEach(([alias, athlete])=>{
         const monthlyDistanceMi = athlete.monthly_distances.map(d=> +(d*0.621371).toFixed(2));
         const monthlyTime = athlete.monthly_time || [0,0];
 
         const EXTRA_GOAL = 480; // 8 hours
+        const extraMonths = [monthNames[prevMonthIndex], monthNames[monthIndex]];
         const extraTime = [monthlyTime[prevMonthIndex] || 0, monthlyTime[monthIndex] || 0];
 
         const card = document.createElement("div");
@@ -337,7 +321,6 @@ function renderDashboard(){
 
         const barThickness = getBarThickness();
 
-        // Monthly Distance Chart (last 2 months)
         CHARTS[`monthChart-${alias}`] = new Chart(document.getElementById(`monthChart-${alias}`), {
             type:"bar",
             data:{ labels: extraMonths, datasets:[{ data: [monthlyDistanceMi[prevMonthIndex], monthlyDistanceMi[monthIndex]], backgroundColor:"rgba(42,102,186,0.6)", barThickness }] },
@@ -347,13 +330,12 @@ function renderDashboard(){
                 layout:{ padding:{ bottom:8 } },
                 plugins:{ legend:{ display:false } },
                 scales:{
-                    y:{ beginAtZero:true, ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } },
+                    y:{ beginAtZero:true, suggestedMin:0, ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } },
                     x:{ ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } }
                 }
             }
         });
 
-        // Monthly Time Chart (last 2 months)
         CHARTS[`monthTimeChart-${alias}`] = new Chart(document.getElementById(`monthTimeChart-${alias}`), {
             type:"bar",
             data:{ labels: extraMonths, datasets:[{ data: [monthlyTime[prevMonthIndex] || 0, monthlyTime[monthIndex] || 0], backgroundColor:"rgba(45,173,131,0.6)", barThickness }] },
@@ -363,13 +345,12 @@ function renderDashboard(){
                 layout:{ padding:{ bottom:8 } },
                 plugins:{ legend:{ display:false } },
                 scales:{
-                    y:{ beginAtZero:true, ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } },
+                    y:{ beginAtZero:true, suggestedMin:0, ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } },
                     x:{ ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } }
                 }
             }
         });
 
-        // Extra Phys Goal Chart
         const goalLinePlugin = {
             id: 'goalLine',
             afterDatasetsDraw(chart) {
@@ -381,7 +362,7 @@ function renderDashboard(){
                     ctx.setLineDash([5,5]);
                     ctx.moveTo(left, yPos);
                     ctx.lineTo(right, yPos);
-                    ctx.lineWidth = 1;  // thinner line
+                    ctx.lineWidth = 2;
                     ctx.strokeStyle = 'rgba(176,196,222,0.6)';
                     ctx.stroke();
                     ctx.restore();
@@ -391,24 +372,14 @@ function renderDashboard(){
 
         CHARTS[`extraChart-${alias}`] = new Chart(document.getElementById(`extraChart-${alias}`), {
             type:"bar",
-            data:{
-                labels: extraMonths,
-                datasets:[{
-                    data: extraTime,
-                    backgroundColor: extraTime.map(val => val >= EXTRA_GOAL 
-                        ? 'rgba(0,255,0,0.3)'  // green if at/over goal
-                        : 'rgba(255,0,0,0.3)'  // red if below goal
-                    ),
-                    barThickness: barThickness
-                }]
-            },
+            data:{ labels: extraMonths, datasets:[{ data: extraTime, backgroundColor: extraTime.map(v => v >= EXTRA_GOAL ? "rgba(0,255,0,0.3)" : "rgba(255,0,0,0.3)"), barThickness }] },
             options:{
                 responsive:true,
                 maintainAspectRatio:false,
                 layout:{ padding:{ bottom:8 } },
                 plugins:{ legend:{ display:false } },
                 scales:{
-                    y:{ beginAtZero:true, max: Math.max(...extraTime, EXTRA_GOAL)+220, ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } },
+                    y:{ beginAtZero:true, suggestedMin:0, max: Math.max(...extraTime, EXTRA_GOAL)+220, ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } },
                     x:{ ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } }
                 }
             },
