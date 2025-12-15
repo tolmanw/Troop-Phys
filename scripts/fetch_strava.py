@@ -11,16 +11,13 @@ ALIASES_JSON = os.environ.get("ATHLETE_ALIASES", "{}")
 
 refresh_tokens = json.loads(REFRESH_TOKENS_JSON)
 USERNAME_ALIASES = json.loads(ALIASES_JSON)
-
-# --- Normalize aliases for case-insensitive matching ---
 USERNAME_ALIASES_NORMALIZED = {k.strip().lower(): v for k, v in USERNAME_ALIASES.items()}
 
-# --- All Strava activity types ---
 activity_types = [
     "Run", "Trail Run", "Walk", "Hike", "Virtual Run",
     "Ride", "Mountain Bike Ride", "Gravel Ride", "E-Bike Ride", "E-Mountain Bike Ride",
     "Velomobile", "Virtual Ride",
-    "Canoe", "Kayak", "Kitesurf", "Rowing", "Stand Up Paddling", "Surf", "Swim", "Windsurf", "Sail",
+    "Canoe", "Kayak", "Kitesurf", "Rowing", "Stand Up Paddling", "Surf", "Windsurf", "Sail",
     "Ice Skate", "Alpine Ski", "Backcountry Ski", "Nordic Ski", "Snowboard", "Snowshoe",
     "Handcycle", "Inline Skate", "Rock Climb", "Roller Ski", "Golf", "Skateboard", "Football (Soccer)",
     "Wheelchair", "Badminton", "Tennis", "Pickleball", "Crossfit", "Elliptical", "Stair Stepper",
@@ -28,6 +25,7 @@ activity_types = [
     "Virtual Rowing"
 ]
 
+# --- Functions ---
 def refresh_access_token(refresh_token):
     response = requests.post(
         "https://www.strava.com/oauth/token",
@@ -53,8 +51,7 @@ def get_last_three_month_starts():
         if month <= 0:
             month += 12
             year -= 1
-        first_day = datetime(year, month, 1, tzinfo=timezone.utc)
-        month_starts.append(first_day)
+        month_starts.append(datetime(year, month, 1, tzinfo=timezone.utc))
     timestamps = [int(d.timestamp()) for d in month_starts]
     return timestamps, month_starts
 
@@ -73,8 +70,17 @@ def days_in_month(dt):
     next_month = dt.replace(day=28) + timedelta(days=4)
     return (next_month - timedelta(days=next_month.day)).day
 
-# --- Main ---
-athletes_out = {}
+# --- Load existing JSON to preserve all users and months ---
+if os.path.exists("data/athletes.json"):
+    with open("data/athletes.json") as f:
+        existing_data = json.load(f)
+        athletes_out = existing_data.get("athletes", {})
+        old_month_names = existing_data.get("month_names", [])
+else:
+    athletes_out = {}
+    old_month_names = []
+
+# --- Determine last three months ---
 prev_ts, month_starts = get_last_three_month_starts()
 month_names = [m.strftime("%B %Y") for m in month_starts]
 
@@ -82,33 +88,44 @@ found_athletes = []
 skipped_athletes = []
 
 for username, info in refresh_tokens.items():
-    print(f"DEBUG: Processing athlete '{username}'")
+    print(f"Processing athlete '{username}'")
     access_token = refresh_access_token(info["refresh_token"])
-    print(f"DEBUG: Access token: {access_token}")
-
     if not access_token:
         print(f"Failed to refresh token for {username}")
         skipped_athletes.append(username)
         continue
 
-    activities = fetch_activities(access_token, prev_ts[0])
+    activities = fetch_activities(access_token, 0)  # fetch all history to preserve older months
     activities = [a for a in activities if a.get("type") in activity_types]
 
-    monthly_distance = [0.0, 0.0, 0.0]
-    monthly_time_min = [0.0, 0.0, 0.0]
-    daily_distance = []
-    daily_time_min = []
+    # Prepare existing data if present
+    alias = USERNAME_ALIASES_NORMALIZED.get(username.lower())
+    if not alias:
+        print(f"Skipping '{username}': no alias defined")
+        skipped_athletes.append(username)
+        continue
 
-    for m in month_starts:
-        days = days_in_month(m)
-        daily_distance.append([0.0]*days)
-        daily_time_min.append([0.0]*days)
+    old_athlete_data = athletes_out.get(alias, {})
+    old_daily_distance = old_athlete_data.get("daily_distance_km", [])
+    old_daily_time = old_athlete_data.get("daily_time_min", [])
+    old_monthly_distance = old_athlete_data.get("monthly_distances", [])
+    old_monthly_time = old_athlete_data.get("monthly_time", [])
 
+    # Initialize arrays for last three months if missing
+    monthly_distance = old_monthly_distance[-3:] if old_monthly_distance else [0.0]*3
+    monthly_time_min = old_monthly_time[-3:] if old_monthly_time else [0.0]*3
+    daily_distance = old_daily_distance[-3:] if old_daily_distance else []
+    daily_time_min = old_daily_time[-3:] if old_daily_time else []
+
+    while len(daily_distance) < 3:
+        daily_distance.append([0.0]*days_in_month(month_starts[len(daily_distance)]))
+        daily_time_min.append([0.0]*days_in_month(month_starts[len(daily_time_min)]))
+
+    # Fill in new activity data
     for act in activities:
         dt = datetime.strptime(act["start_date_local"], "%Y-%m-%dT%H:%M:%S%z")
         dist_km = act.get("distance",0)/1000
         time_min = act.get("moving_time",0)/60
-
         for idx, start in enumerate(month_starts):
             if dt.year == start.year and dt.month == start.month:
                 monthly_distance[idx] += dist_km
@@ -117,23 +134,13 @@ for username, info in refresh_tokens.items():
                 daily_distance[idx][day_idx] += dist_km
                 daily_time_min[idx][day_idx] += time_min
 
-    # Fetch athlete profile
+    # Fetch profile
     athlete_url = "https://www.strava.com/api/v3/athlete"
     headers = {"Authorization": f"Bearer {access_token}"}
     profile_data = requests.get(athlete_url, headers=headers).json()
     profile_img = profile_data.get("profile","")
 
-    real_name = f"{profile_data.get('firstname','').strip()} {profile_data.get('lastname','').strip()}"
-    real_name_normalized = real_name.lower()
-    print(f"DEBUG: Found Strava athlete: '{real_name_normalized}'")
-
-    alias = USERNAME_ALIASES_NORMALIZED.get(real_name_normalized)
-    if not alias:
-        print(f"Skipping '{real_name}': no alias defined")
-        skipped_athletes.append(real_name)
-        continue
-
-    found_athletes.append(real_name)
+    # Save merged data
     athletes_out[alias] = {
         "display_name": alias,
         "profile": profile_img,
@@ -142,11 +149,12 @@ for username, info in refresh_tokens.items():
         "daily_distance_km": [[round(d,2) for d in month] for month in daily_distance],
         "daily_time_min": [[round(t) for t in month] for month in daily_time_min]
     }
+    found_athletes.append(alias)
 
-# Save JSON
+# --- Save JSON ---
 os.makedirs("data", exist_ok=True)
 with open("data/athletes.json","w") as f:
-    json.dump({"athletes":athletes_out,"month_names":month_names},f,indent=2)
+    json.dump({"athletes":athletes_out,"month_names":month_names}, f, indent=2)
 
 print("athletes.json updated successfully.")
 print(f"Found athletes: {found_athletes}")
