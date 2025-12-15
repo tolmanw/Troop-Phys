@@ -76,7 +76,7 @@ select {
 
 /* Top-right logo */
 #topLogo {
-    width: 80px; /* increased size */
+    width: 80px;
     height: 80px;
     border-radius: 50%;
     position: absolute;
@@ -202,6 +202,18 @@ function getBarThickness() {
         : 8;
 }
 
+// Helper function to get last N months (0-based indices)
+function getLastNMonthIndices(n) {
+    const now = new Date();
+    let indices = [];
+    for (let i = n; i > 0; i--) {
+        let idx = now.getMonth() - i + 1;
+        if (idx < 0) idx += 12;
+        indices.push(idx);
+    }
+    return indices;
+}
+
 async function loadData() {
     const response = await fetch("data/athletes.json");
     const data = await response.json();
@@ -210,13 +222,16 @@ async function loadData() {
 
     const monthSelector = document.getElementById("dailyMonthSelector");
     monthSelector.innerHTML = "";
-    monthNames.forEach((m,i)=>{
+
+    // Show last 3 months in dropdown
+    const lastThreeMonths = getLastNMonthIndices(3);
+    lastThreeMonths.forEach(idx => {
         const opt = document.createElement("option");
-        opt.value = i;
-        opt.textContent = m;
+        opt.value = idx;
+        opt.textContent = monthNames[idx];
         monthSelector.appendChild(opt);
     });
-    monthSelector.selectedIndex = monthNames.length - 1;
+    monthSelector.selectedIndex = 2; // default to the most recent month
 
     renderDashboard();
 }
@@ -271,15 +286,17 @@ function renderDashboard(){
     const container = document.getElementById("container");
     container.innerHTML = "";
 
-    const monthIndex = parseInt(document.getElementById("dailyMonthSelector").value);
-    const prevMonthIndex = monthIndex - 1 >= 0 ? monthIndex - 1 : 0;
+    // Determine last two months for bottom charts
+    const now = new Date();
+    const monthIndex = now.getMonth();
+    const prevMonthIndex = monthIndex - 1 >= 0 ? monthIndex - 1 : 11;
+    const extraMonths = [monthNames[prevMonthIndex], monthNames[monthIndex]];
 
     Object.entries(athletesData).forEach(([alias, athlete])=>{
         const monthlyDistanceMi = athlete.monthly_distances.map(d=> +(d*0.621371).toFixed(2));
         const monthlyTime = athlete.monthly_time || [0,0];
 
         const EXTRA_GOAL = 480; // 8 hours
-        const extraMonths = [monthNames[prevMonthIndex], monthNames[monthIndex]];
         const extraTime = [monthlyTime[prevMonthIndex] || 0, monthlyTime[monthIndex] || 0];
 
         const card = document.createElement("div");
@@ -320,6 +337,7 @@ function renderDashboard(){
 
         const barThickness = getBarThickness();
 
+        // Monthly Distance Chart (last 2 months)
         CHARTS[`monthChart-${alias}`] = new Chart(document.getElementById(`monthChart-${alias}`), {
             type:"bar",
             data:{ labels: extraMonths, datasets:[{ data: [monthlyDistanceMi[prevMonthIndex], monthlyDistanceMi[monthIndex]], backgroundColor:"rgba(42,102,186,0.6)", barThickness }] },
@@ -335,6 +353,7 @@ function renderDashboard(){
             }
         });
 
+        // Monthly Time Chart (last 2 months)
         CHARTS[`monthTimeChart-${alias}`] = new Chart(document.getElementById(`monthTimeChart-${alias}`), {
             type:"bar",
             data:{ labels: extraMonths, datasets:[{ data: [monthlyTime[prevMonthIndex] || 0, monthlyTime[monthIndex] || 0], backgroundColor:"rgba(45,173,131,0.6)", barThickness }] },
@@ -350,6 +369,7 @@ function renderDashboard(){
             }
         });
 
+        // Extra Phys Goal Chart
         const goalLinePlugin = {
             id: 'goalLine',
             afterDatasetsDraw(chart) {
@@ -361,7 +381,7 @@ function renderDashboard(){
                     ctx.setLineDash([5,5]);
                     ctx.moveTo(left, yPos);
                     ctx.lineTo(right, yPos);
-                    ctx.lineWidth = 1.5;
+                    ctx.lineWidth = 1;  // thinner line
                     ctx.strokeStyle = 'rgba(176,196,222,0.6)';
                     ctx.stroke();
                     ctx.restore();
