@@ -16,15 +16,18 @@ document.getElementById("challengeToggle").addEventListener("change", async e =>
     if (on) {
         destroyChallenge();
         const data = await loadChallengeData();
-        const currentMonthIndex = new Date().getMonth();
-        renderChallenge(data.athletes, data.month_names, currentMonthIndex);
+
+        // Use last month in JSON for challenge
+        const currentMonthIndex = Object.values(data.athletes)[0].daily_distance_km.length - 1;
+
+        renderChallenge(data.athletes, currentMonthIndex);
     } else {
         destroyChallenge();
         document.getElementById("container").style.display = "flex";
     }
 });
 
-// Destroy previous chart
+// Destroy previous chart and create canvas
 function destroyChallenge() {
     if (challengeChart) {
         challengeChart.destroy();
@@ -32,25 +35,19 @@ function destroyChallenge() {
     }
     const container = document.getElementById("challengeContainer");
     container.innerHTML = `
-        <div class="daily-chart-wrapper chart-tile">
-            <h3 style="text-align:center;"></h3>
-            <canvas id="challenge"></canvas>
-        </div>`;
+        <h2 style="text-align:left; margin-bottom:10px;">Monthly Challenge</h2>
+        <canvas id="challenge"></canvas>`;
 }
 
 // Render cumulative distance chart
-function renderChallenge(athletesData, monthNames, monthIdx) {
-    const container = document.getElementById("challengeContainer");
-    const wrapper = container.querySelector(".daily-chart-wrapper");
-    wrapper.querySelector("h3").textContent = `${monthNames[monthIdx]} Challenge`;
+function renderChallenge(athletesData, monthIdx) {
+    const canvas = document.getElementById("challenge"); // make sure canvas exists
+    if (!canvas) return; // safety check
 
-    // Set fixed wrapper height like dashboard
-    const dailyWidth = window.innerWidth <= 600 ? wrapper.clientWidth : 305;
-    const dailyHeight = window.innerWidth <= 600 ? 200 : 170;
-    wrapper.style.width = dailyWidth + "px";
-    wrapper.style.height = dailyHeight + "px";
+    canvas.style.width = "100%";
+    canvas.style.height = window.innerWidth <= 600 ? "250px" : "400px";
 
-    const athletes = Object.entries(athletesData); // [alias, athlete]
+    const athletes = Object.entries(athletesData);
 
     // cumulative distances
     const datasets = athletes.map(([alias, a]) => {
@@ -68,12 +65,9 @@ function renderChallenge(athletesData, monthNames, monthIdx) {
     });
 
     const labels = datasets[0]?.data.map((_, i) => i+1) || [];
+    const ctx = canvas.getContext("2d");
 
-    const canvas = wrapper.querySelector("#challenge");
-    canvas.style.width = "100%";
-    canvas.style.height = "100%";
-
-    challengeChart = new Chart(canvas, {
+    challengeChart = new Chart(ctx, {
         type: "line",
         data: { labels, datasets },
         options: {
@@ -81,6 +75,7 @@ function renderChallenge(athletesData, monthNames, monthIdx) {
             maintainAspectRatio: false,
             animation: false,
             plugins: { legend: { display: true, position: "bottom" } },
+            layout: { padding: { left: 10, right: 10, top: 10, bottom: 10 } },
             scales: {
                 x: { title: { display: true, text: "Day of Month" } },
                 y: { title: { display: true, text: "Cumulative Distance (mi)" }, beginAtZero: true }
