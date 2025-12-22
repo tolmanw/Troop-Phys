@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Troop Dashboard</title>
+
 <style>
 :root {
     --daily-width: 305px;
@@ -27,128 +28,287 @@ body {
     position: relative;
 }
 
-label { font-size: 14px; }
-select {
-    background: #21262d;
-    color: white;
-    padding: 6px 10px;
-    border-radius: 6px;
-    border: 1px solid #30363d;
-    margin-bottom: 10px;
+label {
     font-size: 14px;
 }
 
-#container { display:flex; flex-wrap:wrap; gap:var(--card-gap); }
-.card { background:#1b1f25; padding:var(--chart-padding); border-radius:12px; margin-bottom:var(--card-gap); width:var(--card-width); display:inline-block; vertical-align:top; }
-.athlete { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
-.athlete img { width:40px; height:40px; border-radius:50%; }
-.athlete h2 { font-size:1em; margin:0; }
-.chart-tile { background:#2a2e36; border:1px solid #555; border-radius:8px; padding:var(--chart-padding); display:flex; flex-direction:column; }
-.daily-chart-wrapper { width:var(--daily-width); height:var(--daily-height); margin:0 auto var(--card-gap) auto; }
-.daily-chart-wrapper canvas { width:100% !important; height:100% !important; }
-.bottom-charts { display:flex; justify-content:space-between; gap:5px; }
-.bottom-charts .chart-tile { width:var(--bottom-width); height:var(--bottom-height); }
-.bottom-charts .chart-tile canvas { flex:1; width:100% !important; }
-.chart-tile h3 { margin:0 0 3px 0; font-size:var(--title-size); color:#c9d1d9; text-align:center; }
-#logo { position:absolute; top:20px; right:20px; width:80px; height:80px; border-radius:50%; object-fit:cover; }
-#challengeContainer { display:none; }
+select, input[type=checkbox] {
+    margin-bottom: 10px;
+}
+
+#container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--card-gap);
+}
+
+.card {
+    background: #1b1f25;
+    padding: var(--chart-padding);
+    border-radius: 12px;
+    margin-bottom: var(--card-gap);
+    width: var(--card-width);
+    display: inline-block;
+    vertical-align: top;
+}
+
+.athlete {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.athlete img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+.athlete h2 {
+    font-size: 1em;
+    margin: 0;
+}
+
+.chart-tile {
+    background: #2a2e36;
+    border: 1px solid #555;
+    border-radius: 8px;
+    padding: var(--chart-padding);
+    display: flex;
+    flex-direction: column;
+}
+
+.daily-chart-wrapper {
+    width: var(--daily-width);
+    height: var(--daily-height);
+    margin: 0 auto var(--card-gap) auto;
+}
+.daily-chart-wrapper canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.bottom-charts {
+    display: flex;
+    justify-content: space-between;
+    gap: 5px;
+}
+.bottom-charts .chart-tile {
+    width: var(--bottom-width);
+    height: var(--bottom-height);
+}
+.bottom-charts .chart-tile canvas {
+    flex: 1;
+    width: 100% !important;
+}
+
+.chart-tile h3 {
+    margin: 0 0 3px 0;
+    font-size: var(--title-size);
+    color: #c9d1d9;
+    text-align: center;
+}
+
+#logo {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+}
 
 /* --- Mobile Overrides --- */
-@media (max-width:600px) {
+@media (max-width: 600px) {
     :root {
-        --daily-width:92%; --daily-height:140px; --bottom-width:30%; --bottom-height:90px; --card-width:95%; --card-gap:12px; --chart-padding:10px; --font-size:6px; --title-size:6px; --bar-thickness:4;
+        --daily-width: 92%;       
+        --daily-height: 140px;
+        --bottom-width: 30%;
+        --bottom-height: 90px;
+        --card-width: 95%;
+        --card-gap: 12px;
+        --chart-padding: 10px;
+        --font-size: 6px;
+        --title-size: 6px;
+        --bar-thickness: 4;
     }
-    body { padding:10px; font-size:12px; }
-    select { font-size:12px; padding:4px 8px; }
-    .card { display:flex; flex-direction:column; }
-    .daily-chart-wrapper { margin-left:auto; margin-right:auto; }
-    .bottom-charts { flex-direction:row; justify-content:space-between; flex-wrap:nowrap; gap:10px; width:100%; }
-    .bottom-charts .chart-tile { flex:1 1 30%; max-width:30%; margin-bottom:0; }
+
+    body {
+        padding: 10px;
+        font-size: 12px;
+    }
+
+    select {
+        font-size: 12px;
+        padding: 4px 8px;
+    }
+
+    .card {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .daily-chart-wrapper {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .bottom-charts {
+        flex-direction: row;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .bottom-charts .chart-tile {
+        flex: 1 1 30%;
+        max-width: 30%;
+        margin-bottom: 0;
+    }
 }
 </style>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-<h1 style="font-size:25px;">Troop Dashboard</h1>
+<h1 style="font-size: 25px;">Troop Dashboard</h1>
 <img id="logo" src="logo.jpeg" alt="Logo">
 
-<label style="font-size:14px;">Daily Distance Month:</label>
-<select id="dailyMonthSelector" style="font-size:12px; padding:4px 8px;"></select>
+<label>Daily Distance Month:</label>
+<select id="dailyMonthSelector"></select>
 <br>
 <label><input type="checkbox" id="challengeToggle"> Show Monthly Challenge</label>
 
 <div id="container"></div>
-<div id="challengeContainer"></div>
+<div id="challengeContainer" style="display:none;"></div>
 
 <script>
-let athletesData, monthNames;
+let athletesData;
+let monthNames;
 const CHARTS = {};
 
+// --- Dashboard functions ---
 function getBarThickness() {
     return window.innerWidth <= 600
         ? parseInt(getComputedStyle(document.documentElement).getPropertyValue('--bar-thickness'))
         : 8;
 }
 
+function destroyChartIfExists(id){
+    if (CHARTS[id]) {
+        try { CHARTS[id].destroy(); } catch(e){}
+        delete CHARTS[id];
+    }
+}
+
 async function loadData() {
     const response = await fetch("data/athletes.json");
     const data = await response.json();
     athletesData = data.athletes;
-    monthNames = data.month_names.map(m=>m.substr(0,3));
+    monthNames = data.month_names.map(m => m.substr(0,3));
 
     const monthSelector = document.getElementById("dailyMonthSelector");
-    monthSelector.innerHTML="";
+    monthSelector.innerHTML = "";
     monthNames.forEach((m,i)=>{
         const opt = document.createElement("option");
-        opt.value=i; opt.textContent=m;
+        opt.value = i;
+        opt.textContent = m;
         monthSelector.appendChild(opt);
     });
-    monthSelector.selectedIndex = monthNames.length-1;
+    monthSelector.selectedIndex = monthNames.length - 1;
 
     renderDashboard();
 }
 
-function destroyChartIfExists(id){
-    if(CHARTS[id]) { try{CHARTS[id].destroy();}catch(e){} delete CHARTS[id]; }
-}
-
 function updateDailyChart(alias, monthIndex){
     const athlete = athletesData[alias];
-    const dailyDistanceMi = athlete.daily_distance_km[monthIndex].map(d=>+(d*0.621371).toFixed(2));
+    const dailyDistanceMi = athlete.daily_distance_km[monthIndex].map(d => +(d*0.621371).toFixed(2));
     const chartId = `dailyChart-${alias}`;
     destroyChartIfExists(chartId);
+
+    const barColors = dailyDistanceMi.map(()=> "rgba(75,192,192,0.8)");
+
     CHARTS[chartId] = new Chart(document.getElementById(chartId), {
-        type:"bar",
-        data:{ labels: dailyDistanceMi.map((_,i)=>i+1), datasets:[{ data: dailyDistanceMi, backgroundColor:"rgba(75,192,192,0.8)", barThickness:getBarThickness() }] },
-        options:{ responsive:true, maintainAspectRatio:true, plugins:{ legend:{ display:false } }, scales:{ x:{ ticks:{ autoSkip:false, font:{ size:parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } }, y:{ beginAtZero:true, ticks:{ font:{ size:parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } } } }
+        type: "bar",
+        data:{
+            labels: dailyDistanceMi.map((_,i)=>i+1),
+            datasets:[{ data: dailyDistanceMi, backgroundColor: barColors, minBarLength:2, barThickness: getBarThickness() }]
+        },
+        options:{
+            responsive:true,
+            maintainAspectRatio:true,
+            plugins:{ legend:{ display:false } },
+            scales:{
+                x:{
+                    ticks:{
+                        autoSkip:false,
+                        maxRotation:0,
+                        minRotation:0,
+                        font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) },
+                        callback: function(value, index){
+                            return (index % 2 === 0) ? this.getLabelForValue(value) : '';
+                        }
+                    }
+                },
+                y:{
+                    beginAtZero:true,
+                    suggestedMin: 0,
+                    ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } }
+                }
+            }
+        }
     });
-    document.querySelector(`#dailyChart-${alias}`).parentElement.querySelector("h3").textContent = `Daily Distance - ${monthNames[monthIndex]}`;
+
+    document.querySelector(`#dailyChart-${alias}`).parentElement.querySelector("h3").textContent =
+        `Daily Distance - ${monthNames[monthIndex]}`;
 }
 
 function renderDashboard(){
     const container = document.getElementById("container");
-    container.innerHTML="";
-    const monthIndex = parseInt(document.getElementById("dailyMonthSelector").value);
-    const prevMonthIndex = monthIndex>0?monthIndex-1:0;
+    container.innerHTML = "";
 
-    Object.entries(athletesData).forEach(([alias,athlete])=>{
-        const monthlyDistanceMi = athlete.monthly_distances.map(d=>+(d*0.621371).toFixed(2));
+    const monthIndex = parseInt(document.getElementById("dailyMonthSelector").value);
+    const prevMonthIndex = monthIndex - 1 >= 0 ? monthIndex - 1 : 0;
+
+    Object.entries(athletesData).forEach(([alias, athlete])=>{
+        const monthlyDistanceMi = athlete.monthly_distances.map(d=> +(d*0.621371).toFixed(2));
         const monthlyTime = athlete.monthly_time || [0,0];
-        const EXTRA_GOAL = 480; 
+
+        const EXTRA_GOAL = 480;
         const extraMonths = [monthNames[prevMonthIndex], monthNames[monthIndex]];
-        const extraTime = [monthlyTime[prevMonthIndex]||0, monthlyTime[monthIndex]||0];
+        const extraTime = [monthlyTime[prevMonthIndex] || 0, monthlyTime[monthIndex] || 0];
 
         const card = document.createElement("div");
-        card.className="card";
-        card.innerHTML=`
-            <div class="athlete"><img src="${athlete.profile}"><div><h2>${athlete.display_name}</h2></div></div>
-            <div class="daily-chart-wrapper chart-tile"><h3 style="font-size:${parseInt(getComputedStyle(document.documentElement).getPropertyValue('--title-size'))}px;">Daily Distance - ${monthNames[monthIndex]}</h3><canvas id="dailyChart-${alias}"></canvas></div>
+        card.className = "card";
+
+        card.innerHTML = `
+            <div class="athlete">
+                <img src="${athlete.profile}">
+                <div><h2>${athlete.display_name}</h2></div>
+            </div>
+
+            <div class="daily-chart-wrapper chart-tile">
+                <h3 style="font-size:${parseInt(getComputedStyle(document.documentElement).getPropertyValue('--title-size'))}px;">Daily Distance - ${monthNames[monthIndex]}</h3>
+                <canvas id="dailyChart-${alias}"></canvas>
+            </div>
+
             <div class="bottom-charts">
-                <div class="chart-tile"><h3 style="font-size:${parseInt(getComputedStyle(document.documentElement).getPropertyValue('--title-size'))}px;">Extra Phys Goal</h3><canvas id="extraChart-${alias}"></canvas></div>
-                <div class="chart-tile"><h3 style="font-size:${parseInt(getComputedStyle(document.documentElement).getPropertyValue('--title-size'))}px;">Monthly Distance</h3><canvas id="monthChart-${alias}"></canvas></div>
-                <div class="chart-tile"><h3 style="font-size:${parseInt(getComputedStyle(document.documentElement).getPropertyValue('--title-size'))}px;">Monthly Time</h3><canvas id="monthTimeChart-${alias}"></canvas></div>
-            </div>`;
+                <div class="chart-tile">
+                    <h3 style="font-size:${parseInt(getComputedStyle(document.documentElement).getPropertyValue('--title-size'))}px;">Extra Phys Goal</h3>
+                    <canvas id="extraChart-${alias}"></canvas>
+                </div>
+                <div class="chart-tile">
+                    <h3 style="font-size:${parseInt(getComputedStyle(document.documentElement).getPropertyValue('--title-size'))}px;">Monthly Distance</h3>
+                    <canvas id="monthChart-${alias}"></canvas>
+                </div>
+                <div class="chart-tile">
+                    <h3 style="font-size:${parseInt(getComputedStyle(document.documentElement).getPropertyValue('--title-size'))}px;">Monthly Time</h3>
+                    <canvas id="monthTimeChart-${alias}"></canvas>
+                </div>
+            </div>
+        `;
         container.appendChild(card);
 
         destroyChartIfExists(`monthChart-${alias}`);
@@ -158,22 +318,78 @@ function renderDashboard(){
 
         const barThickness = getBarThickness();
 
+        // Monthly Distance Chart
         CHARTS[`monthChart-${alias}`] = new Chart(document.getElementById(`monthChart-${alias}`), {
             type:"bar",
-            data:{ labels:extraMonths, datasets:[{ data:[monthlyDistanceMi[prevMonthIndex],monthlyDistanceMi[monthIndex]], backgroundColor:"rgba(42,102,186,0.6)", barThickness }] },
-            options:{ responsive:true, maintainAspectRatio:false, layout:{ padding:{ bottom:8 } }, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true }, x:{ ticks:{ font:{ size:parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } } } }
+            data:{ labels: extraMonths, datasets:[{ data: [monthlyDistanceMi[prevMonthIndex], monthlyDistanceMi[monthIndex]], backgroundColor:"rgba(42,102,186,0.6)", barThickness }] },
+            options:{
+                responsive:true,
+                maintainAspectRatio:false,
+                layout:{ padding:{ bottom:8 } },
+                plugins:{ legend:{ display:false } },
+                scales:{
+                    y:{ beginAtZero:true, suggestedMin:0, ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } },
+                    x:{ ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } }
+                }
+            }
         });
 
+        // Monthly Time Chart
         CHARTS[`monthTimeChart-${alias}`] = new Chart(document.getElementById(`monthTimeChart-${alias}`), {
             type:"bar",
-            data:{ labels:extraMonths, datasets:[{ data:[monthlyTime[prevMonthIndex]||0,monthlyTime[monthIndex]||0], backgroundColor:"rgba(45,173,131,0.6)", barThickness }] },
-            options:{ responsive:true, maintainAspectRatio:false, layout:{ padding:{ bottom:8 } }, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true }, x:{ ticks:{ font:{ size:parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } } } }
+            data:{ labels: extraMonths, datasets:[{ data: [monthlyTime[prevMonthIndex] || 0, monthlyTime[monthIndex] || 0], backgroundColor:"rgba(45,173,131,0.6)", barThickness }] },
+            options:{
+                responsive:true,
+                maintainAspectRatio:false,
+                layout:{ padding:{ bottom:8 } },
+                plugins:{ legend:{ display:false } },
+                scales:{
+                    y:{ beginAtZero:true, suggestedMin:0, ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } },
+                    x:{ ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } }
+                }
+            }
+        });
+
+        const goalLinePlugin = {
+            id: 'goalLine',
+            afterDatasetsDraw(chart) {
+                const { ctx, chartArea:{left,right,top,bottom}, scales:{y} } = chart;
+                const yPos = y.getPixelForValue(EXTRA_GOAL);
+                if (yPos >= top && yPos <= bottom) {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.setLineDash([5,5]);
+                    ctx.moveTo(left, yPos);
+                    ctx.lineTo(right, yPos);
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = 'rgba(176,196,222,0.6)';
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            }
+        };
+
+        CHARTS[`extraChart-${alias}`] = new Chart(document.getElementById(`extraChart-${alias}`), {
+            type:"bar",
+            data:{ labels: extraMonths, datasets:[{ data: extraTime, backgroundColor: extraTime.map(v => v >= EXTRA_GOAL ? "rgba(0,255,0,0.3)" : "rgba(255,0,0,0.3)"), barThickness }] },
+            options:{
+                responsive:true,
+                maintainAspectRatio:false,
+                layout:{ padding:{ bottom:8 } },
+                plugins:{ legend:{ display:false } },
+                scales:{
+                    y:{ beginAtZero:true, suggestedMin:0, max: Math.max(...extraTime, EXTRA_GOAL)+220, ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } },
+                    x:{ ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } }
+                }
+            },
+            plugins:[goalLinePlugin]
         });
 
         updateDailyChart(alias, monthIndex);
     });
 }
 
+// Listen for month selector
 document.getElementById("dailyMonthSelector").addEventListener("change", ()=>{
     const monthIndex = parseInt(document.getElementById("dailyMonthSelector").value);
     Object.keys(athletesData).forEach(alias=>{
@@ -181,12 +397,16 @@ document.getElementById("dailyMonthSelector").addEventListener("change", ()=>{
     });
 });
 
+// --- Expose dashboard to challenge.js ---
 window.DASHBOARD = {
     renderDashboard,
-    destroyCharts:()=>{ Object.keys(CHARTS).forEach(id=>{try{CHARTS[id].destroy();}catch(e){};}); },
-    getData:()=>({ athletesData, monthNames })
+    destroyCharts: () => {
+        Object.keys(CHARTS).forEach(k => CHARTS[k]?.destroy());
+    },
+    getData: () => ({ athletesData, monthNames })
 };
 
+// Load initial data
 loadData();
 </script>
 <script src="challenge.js"></script>
