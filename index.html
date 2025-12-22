@@ -181,7 +181,6 @@ document.getElementById("dailyMonthSelector").addEventListener("change", ()=>{
     });
 });
 
-// --- Expose global DASHBOARD for challenge.js ---
 window.DASHBOARD = {
     renderDashboard,
     destroyCharts:()=>{ Object.keys(CHARTS).forEach(id=>{try{CHARTS[id].destroy();}catch(e){};}); },
@@ -190,7 +189,6 @@ window.DASHBOARD = {
 
 loadData();
 </script>
-
 <script src="challenge.js"></script>
 </body>
 </html>
