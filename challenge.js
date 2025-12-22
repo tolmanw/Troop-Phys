@@ -5,28 +5,32 @@ function destroyChallenge() {
         challengeChart.destroy(); 
         challengeChart = null; 
     }
-    const container = document.getElementById("challengeContainer");
-    container.innerHTML = "";
+    document.getElementById("challengeContainer").innerHTML = "";
 }
 
 // Render cumulative challenge chart
-function renderChallenge(athletesData, monthIndex) {
+function renderChallenge(athletesData, monthNames) {
     const container = document.getElementById("challengeContainer");
-    container.innerHTML = `<h2 style="text-align:left; margin-bottom:10px;">Monthly Challenge</h2><canvas id="challengeChartCanvas"></canvas>`;
+    container.innerHTML = `<div class="card" style="width:95%; max-width:600px; margin:0 auto;">
+        <h2 style="text-align:left; margin-bottom:10px;">Monthly Challenge</h2>
+        <canvas id="challengeChartCanvas"></canvas>
+    </div>`;
 
     const canvas = document.getElementById("challengeChartCanvas");
-    // Fixed height for desktop and mobile-friendly height for smaller screens
-    canvas.style.width = "100%";
     canvas.style.height = window.innerWidth <= 600 ? "250px" : "400px";
+    canvas.style.width = "100%";
 
-    // Prepare datasets with cumulative distances
+    // Current month index based on JSON
+    const currentMonthIndex = monthNames.length - 1;
+
+    // Prepare cumulative datasets
     const datasets = Object.values(athletesData).map(a => {
         let cumulative = 0;
-        const data = a.daily_distance_km[monthIndex].map(d => +(cumulative += d*0.621371).toFixed(2));
+        const data = a.daily_distance_km[currentMonthIndex].map(d => +(cumulative += d * 0.621371).toFixed(2));
         return {
             label: a.display_name,
             data,
-            borderColor: `hsl(${Math.random()*360},70%,60%)`,
+            borderColor: `hsl(${Math.random() * 360}, 70%, 60%)`,
             fill: false,
             tension: 0.3,
             pointRadius: 3,
@@ -34,10 +38,11 @@ function renderChallenge(athletesData, monthIndex) {
         };
     });
 
-    const labels = datasets[0]?.data.map((_,i) => i+1) || [];
+    if (!datasets.length || !datasets[0].data.length) return; // Nothing to draw
+
+    const labels = datasets[0].data.map((_, i) => i + 1);
     const maxDistance = Math.max(...datasets.flatMap(d => d.data), 10);
 
-    // Create chart
     challengeChart = new Chart(canvas.getContext("2d"), {
         type: "line",
         data: { labels, datasets },
@@ -45,9 +50,7 @@ function renderChallenge(athletesData, monthIndex) {
             responsive: true,
             maintainAspectRatio: false,
             animation: false,
-            plugins: {
-                legend: { display: true, position: "bottom" }
-            },
+            plugins: { legend: { display: true, position: "bottom" } },
             scales: {
                 x: { 
                     title: { display: true, text: "Day of Month" },
@@ -68,13 +71,14 @@ function renderChallenge(athletesData, monthIndex) {
                     const dataset = chart.data.datasets[i];
                     if (!dataset.data.length) return;
                     const lastIndex = dataset.data.length - 1;
-                    const xPos = x.getPixelForValue(lastIndex+1);
+                    const xPos = x.getPixelForValue(lastIndex + 1);
                     const yPos = y.getPixelForValue(dataset.data[lastIndex]);
+
                     const img = new Image();
                     img.src = a.profile;
                     img.onload = () => {
                         const size = window.innerWidth <= 600 ? 16 : 24;
-                        ctx.drawImage(img, xPos - size/2, yPos - size/2, size, size);
+                        ctx.drawImage(img, xPos - size / 2, yPos - size / 2, size, size);
                     };
                 });
             }
@@ -93,11 +97,11 @@ document.addEventListener("DOMContentLoaded", () => {
         container.style.display = on ? "none" : "flex";
         challengeContainer.style.display = on ? "block" : "none";
 
+        const { athletesData, monthNames } = window.DASHBOARD.getData();
+
         if (on) {
             window.DASHBOARD.destroyCharts();
-            const { athletesData } = window.DASHBOARD.getData();
-            const currentMonthIndex = new Date().getMonth();
-            renderChallenge(athletesData, currentMonthIndex);
+            renderChallenge(athletesData, monthNames);
         } else {
             destroyChallenge();
             window.DASHBOARD.renderDashboard();
