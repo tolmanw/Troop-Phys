@@ -183,6 +183,13 @@ select {
 <h1 style="font-size: 25px;">Troop Dashboard</h1>
 <img id="logo" src="logo.jpeg" alt="Logo">
 
+<!-- Challenge toggle -->
+<label style="font-size:14px; display:block; margin-bottom:10px;">
+  <input type="checkbox" id="challengeToggle" style="margin-right:5px;">
+  Show Challenge
+</label>
+<div id="challengeContainer" style="display:none;"></div>
+
 <label style="font-size: 14px;">Daily Distance Month:</label>
 <select id="dailyMonthSelector" style="font-size: 12px; padding: 4px 8px;"></select>
 
@@ -398,6 +405,17 @@ document.getElementById("dailyMonthSelector").addEventListener("change", ()=>{
 });
 
 loadData();
+
+// Expose dashboard functions for challenge.js
+window.DASHBOARD = {
+    destroyCharts: () => Object.values(CHARTS).forEach(c => { try { c.destroy(); } catch(e){} }),
+    getData: () => ({ athletesData, monthNames }),
+    renderDashboard: renderDashboard
+};
 </script>
+
+<!-- Include challenge.js -->
+<script src="challenge.js"></script>
+
 </body>
 </html>
