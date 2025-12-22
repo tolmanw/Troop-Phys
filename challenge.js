@@ -6,7 +6,7 @@ async function loadChallengeData() {
     return await response.json();
 }
 
-// Find the last month with any non-zero distance
+// Find the last month with any non-zero daily distance
 function getLastMonthWithData(athletesData) {
     const numMonths = Object.values(athletesData)[0].daily_distance_km.length;
     for (let i = numMonths - 1; i >= 0; i--) {
@@ -14,28 +14,31 @@ function getLastMonthWithData(athletesData) {
             return i;
         }
     }
-    return numMonths - 1; // fallback
+    return numMonths - 1;
 }
 
 // Toggle listener
-document.getElementById("challengeToggle").addEventListener("change", async e => {
-    const on = e.target.checked;
-    const container = document.getElementById("challengeContainer");
-    document.getElementById("container").style.display = on ? "none" : "flex";
-    container.style.display = on ? "block" : "none";
+document.addEventListener("DOMContentLoaded", () => {
+    const toggle = document.getElementById("challengeToggle");
+    toggle.addEventListener("change", async e => {
+        const on = e.target.checked;
+        const container = document.getElementById("challengeContainer");
+        document.getElementById("container").style.display = on ? "none" : "flex";
+        container.style.display = on ? "block" : "none";
 
-    if (on) {
-        destroyChallenge();
-        const data = await loadChallengeData();
-        const currentMonthIndex = getLastMonthWithData(data.athletes);
-        renderChallenge(data.athletes, currentMonthIndex);
-    } else {
-        destroyChallenge();
-        document.getElementById("container").style.display = "flex";
-    }
+        if (on) {
+            destroyChallenge();
+            const data = await loadChallengeData();
+            const currentMonthIndex = getLastMonthWithData(data.athletes);
+            renderChallenge(data.athletes, currentMonthIndex);
+        } else {
+            destroyChallenge();
+            document.getElementById("container").style.display = "flex";
+        }
+    });
 });
 
-// Destroy previous chart and create new canvas
+// Destroy previous chart and create canvas
 function destroyChallenge() {
     if (challengeChart) {
         challengeChart.destroy();
@@ -52,13 +55,11 @@ function renderChallenge(athletesData, monthIdx) {
     const canvas = document.getElementById("challenge");
     if (!canvas) return;
 
-    // Responsive height
     canvas.style.width = "100%";
     canvas.style.height = window.innerWidth <= 600 ? "250px" : "400px";
 
     const athletes = Object.entries(athletesData);
 
-    // Calculate cumulative distances
     const datasets = athletes.map(([alias, a]) => {
         let cumulative = 0;
         const data = (a.daily_distance_km[monthIdx] || []).map(d => +(cumulative += d * 0.621371).toFixed(2));
@@ -113,7 +114,6 @@ function renderChallenge(athletesData, monthIdx) {
     });
 }
 
-// Utility: generate random color for lines
 function getRandomColor() {
     const r = Math.floor(Math.random() * 200 + 30);
     const g = Math.floor(Math.random() * 200 + 30);
