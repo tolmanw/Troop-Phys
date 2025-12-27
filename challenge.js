@@ -2,8 +2,8 @@ let challengeChart = null;
 
 // --- Root CSS variables for easy control ---
 const root = document.documentElement;
-root.style.setProperty('--challenge-width', '700px');       // Card width (desktop default)
-root.style.setProperty('--challenge-height', '400px');      // Chart height (desktop default)
+root.style.setProperty('--challenge-width', '700px');       // Card width
+root.style.setProperty('--challenge-height', '400px');      // Chart height
 root.style.setProperty('--challenge-padding', '15px');      // Card padding
 root.style.setProperty('--challenge-padding-right', '60px'); // Extra right padding for athlete images
 root.style.setProperty('--font-size', '8px');               // Font size for chart labels
@@ -33,26 +33,18 @@ function renderChallenge(athletesData, monthNames) {
 
     // --- Read root CSS variables ---
     const style = getComputedStyle(root);
-    const fontSize = parseInt(style.getPropertyValue('--font-size')) || 8;
-    const paddingRight = parseInt(style.getPropertyValue('--challenge-padding-right')) || 60;
+    const cardWidth = style.getPropertyValue('--challenge-width') || '700px';
+    const chartHeight = style.getPropertyValue('--challenge-height') || '400px';
     const chartPadding = parseInt(style.getPropertyValue('--challenge-padding')) || 15;
-
-    // --- Responsive sizing ---
-    const screenWidth = window.innerWidth;
-    let cardWidth = style.getPropertyValue('--challenge-width') || '700px';
-    let chartHeight = style.getPropertyValue('--challenge-height') || '400px';
-
-    if (screenWidth <= 600) {
-        cardWidth = '95%';
-        chartHeight = '300px';
-    }
+    const paddingRight = parseInt(style.getPropertyValue('--challenge-padding-right')) || 60;
+    const fontSize = parseInt(style.getPropertyValue('--font-size')) || 8;
 
     // --- Apply styles dynamically ---
     card.style.width = cardWidth;
     card.style.padding = `${chartPadding}px`;
     card.style.background = "#1b1f25";
     card.style.borderRadius = "20px";
-    card.style.margin = "0 auto";
+    card.style.margin = "0";
     canvas.style.width = "100%";
     canvas.style.height = chartHeight;
 
@@ -80,14 +72,14 @@ function renderChallenge(athletesData, monthNames) {
     }
 
     const labels = datasets[0].data.map((_, i) => i + 1);
-    const maxDistanceMi = Math.ceil(Math.max(...datasets.flatMap(d => d.data)) + 1); // +1 mile buffer
+    const maxDistanceMi = Math.ceil(Math.max(...datasets.flatMap(d => d.data)) + 1); // +1 mile buffer rounded up
 
     // --- Create chart ---
     challengeChart = new Chart(ctx, {
         type: "line",
         data: { labels, datasets },
         options: {
-            responsive: true,
+            responsive: false,
             maintainAspectRatio: false,
             layout: { padding: { bottom: chartPadding, right: paddingRight } },
             plugins: {
@@ -118,17 +110,16 @@ function renderChallenge(athletesData, monthNames) {
                     let xPos = x.getPixelForValue(lastIndex + 1);
                     let yPos = y.getPixelForValue(dataset.data[lastIndex]);
 
-                    // Ensure image is fully visible on right
-                    const size = screenWidth <= 600 ? 20 : 40;
-                    xPos = Math.min(xPos, canvas.width - size / 2 - paddingRight);
+                    // Ensure the image is fully visible with right padding
+                    const size = window.innerWidth <= 600 ? 20 : 40;
+                    xPos = Math.min(xPos, canvas.width - size/2 - paddingRight);
 
                     const img = new Image();
                     img.src = a.profile;
                     img.onload = () => {
                         ctx.save();
-                        // Circular clipping
                         ctx.beginPath();
-                        ctx.arc(xPos, yPos, size / 2, 0, Math.PI * 2);
+                        ctx.arc(xPos, yPos, size / 2, 0, Math.PI * 2); // circle clipping
                         ctx.closePath();
                         ctx.clip();
                         ctx.drawImage(img, xPos - size / 2, yPos - size / 2, size, size);
@@ -149,9 +140,8 @@ function initChallengeToggle() {
         const monthSelector = document.getElementById("dailyMonthSelector");
         const on = toggle.checked;
 
-        // Daily distance month hidden on toggle
-        monthSelector.style.display = on ? "none" : "inline-block";
         container.style.display = on ? "none" : "flex";
+        monthSelector.style.display = on ? "none" : "inline-block"; // hide dropdown
         challengeContainer.style.display = on ? "block" : "none";
 
         const { athletesData, monthNames } = window.DASHBOARD.getData();
