@@ -28,7 +28,7 @@ function renderChallenge(athletesData, monthNames) {
     card.style.maxWidth = "1200px"; // wider card for better chart display
     card.style.margin = "0 auto";
     card.style.padding = "20px";
-    card.style.paddingBottom = "60px"; // extra space for x-axis labels and images
+    card.style.paddingBottom = "20px"; // extra space for x-axis labels and images
     card.style.background = "#1b1f25";
     card.style.borderRadius = "20px";
 
