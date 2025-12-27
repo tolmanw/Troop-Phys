@@ -2,10 +2,11 @@ let challengeChart = null;
 
 // --- Set CSS root variables dynamically ---
 const root = document.documentElement;
-root.style.setProperty('--challenge-width', '700px');    // Card width
-root.style.setProperty('--challenge-height', '400px');   // Chart height
-root.style.setProperty('--challenge-padding', '15px');   // Card padding
-root.style.setProperty('--font-size', '8px');            // Font size for chart labels
+root.style.setProperty('--challenge-width', '700px');       // Card width
+root.style.setProperty('--challenge-height', '400px');      // Chart height
+root.style.setProperty('--challenge-padding', '15px');      // Top/left/bottom padding
+root.style.setProperty('--challenge-padding-right', '50px'); // Right padding for athlete images
+root.style.setProperty('--font-size', '8px');               // Font size for chart labels
 
 function destroyChallenge() {
     if (challengeChart) {
@@ -31,17 +32,22 @@ function renderChallenge(athletesData, monthNames) {
     const ctx = canvas.getContext("2d");
 
     // --- Read root variables ---
-    const cardWidth = getComputedStyle(root).getPropertyValue('--challenge-width') || '700px';
-    const chartHeight = getComputedStyle(root).getPropertyValue('--challenge-height') || '400px';
-    const chartPadding = getComputedStyle(root).getPropertyValue('--challenge-padding') || '15px';
-    const fontSize = parseInt(getComputedStyle(root).getPropertyValue('--font-size')) || 8;
+    const style = getComputedStyle(root);
+    const cardWidth = style.getPropertyValue('--challenge-width') || '700px';
+    const chartHeight = style.getPropertyValue('--challenge-height') || '400px';
+    const chartPadding = style.getPropertyValue('--challenge-padding') || '15px';
+    const paddingRight = style.getPropertyValue('--challenge-padding-right') || '50px';
+    const fontSize = parseInt(style.getPropertyValue('--font-size')) || 8;
 
     // --- Apply card and canvas styles ---
     card.style.width = cardWidth;
-    card.style.padding = chartPadding;
+    card.style.paddingTop = chartPadding;
+    card.style.paddingLeft = chartPadding;
+    card.style.paddingBottom = chartPadding;
+    card.style.paddingRight = paddingRight; // use new right padding
     card.style.background = "#1b1f25";
     card.style.borderRadius = "20px";
-    card.style.margin = "0";
+    card.style.margin = "0"; // center card if needed
     canvas.style.width = "100%";
     canvas.style.height = chartHeight;
 
@@ -56,7 +62,7 @@ function renderChallenge(athletesData, monthNames) {
             borderColor: `hsl(${Math.random() * 360},70%,60%)`,
             fill: false,
             tension: 0.3,
-            pointRadius: 0, // no points
+            pointRadius: 0, // remove points
             borderWidth: 3
         };
     });
@@ -89,7 +95,7 @@ function renderChallenge(athletesData, monthNames) {
                 img.onload = () => {
                     const size = window.innerWidth <= 600 ? 20 : 40;
                     ctx.save();
-                    // draw circle mask for round image
+                    // draw round image
                     ctx.beginPath();
                     ctx.arc(xPos, yPos, size/2, 0, 2 * Math.PI);
                     ctx.closePath();
