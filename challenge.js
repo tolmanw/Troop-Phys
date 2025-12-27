@@ -37,25 +37,18 @@ function renderChallenge(athletesData, monthNames) {
     /* FIXED PIXEL SIZE — from CSS variables */
     const width = cssPx("--challenge-canvas-width");
     const height = cssPx("--challenge-canvas-height");
-
     canvas.width = width;
     canvas.height = height;
 
-    /* Prevent CSS from stretching the canvas */
-    canvas.style.width = "auto";
-    canvas.style.height = "auto";
-    canvas.style.display = "block";
-
     const currentMonthIndex = monthNames.length - 1;
 
-    /* Build cumulative datasets */
+    /* Build cumulative datasets, skip athletes with no data */
     const datasets = Object.values(athletesData).map(a => {
         const daily = a.daily_distance_km[currentMonthIndex] || [];
-        let cumulative = 0;
+        if (!daily.length) return null;
 
-        const data = daily.map(d =>
-            +(cumulative += d * 0.621371).toFixed(2)
-        );
+        let cumulative = 0;
+        const data = daily.map(d => +(cumulative += d * 0.621371).toFixed(2));
 
         return {
             label: a.display_name,
@@ -66,17 +59,16 @@ function renderChallenge(athletesData, monthNames) {
             pointRadius: 3,
             borderWidth: 2
         };
-    });
+    }).filter(d => d !== null); // remove null entries
 
-    /* Prevent rendering if all data is empty */
-    const hasData = datasets.some(d => d.data.some(v => v > 0));
-    if (!hasData) {
-        canvas.remove();
-        container.innerHTML +=
-            "<p style='color:#e6edf3'>No challenge data for this month.</p>";
+    /* If no athlete has data, show message */
+    if (!datasets.length) {
+        container.querySelector("canvas").remove();
+        container.innerHTML += "<p style='color:#e6edf3'>No challenge data for this month.</p>";
         return;
     }
 
+    /* Labels: day numbers based on first dataset */
     const labels = datasets[0].data.map((_, i) => i + 1);
     const maxDistance = Math.max(...datasets.flatMap(d => d.data), 10);
 
@@ -94,19 +86,13 @@ function renderChallenge(athletesData, monthNames) {
             },
             scales: {
                 x: {
-                    title: {
-                        display: true,
-                        text: "Day of Month"
-                    },
+                    title: { display: true, text: "Day of Month" },
                     ticks: { maxRotation: 0, minRotation: 0 }
                 },
                 y: {
                     min: 0,
                     max: maxDistance + 5,
-                    title: {
-                        display: true,
-                        text: "Cumulative Distance (mi)"
-                    }
+                    title: { display: true, text: "Cumulative Distance (mi)" }
                 }
             }
         },
@@ -114,10 +100,11 @@ function renderChallenge(athletesData, monthNames) {
             id: "athleteImages",
             afterDatasetsDraw(chart) {
                 const { ctx, scales: { x, y } } = chart;
+                if (!chart.data.datasets || !chart.data.datasets.length) return;
 
                 Object.values(athletesData).forEach((a, i) => {
                     const dataset = chart.data.datasets[i];
-                    if (!dataset.data.length) return;
+                    if (!dataset || !dataset.data.length) return;
 
                     const lastIndex = dataset.data.length - 1;
                     const xPos = x.getPixelForValue(lastIndex + 1);
