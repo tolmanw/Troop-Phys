@@ -1,3 +1,13 @@
+let challengeChart = null;
+
+function destroyChallenge() {
+    if (challengeChart) {
+        challengeChart.destroy();
+        challengeChart = null;
+    }
+    document.getElementById("challengeContainer").innerHTML = "";
+}
+
 function renderChallenge(athletesData, monthNames) {
     if (!athletesData || !monthNames) return;
 
@@ -13,6 +23,7 @@ function renderChallenge(athletesData, monthNames) {
     const ctx = canvas.getContext("2d");
     const currentMonthIndex = monthNames.length - 1;
 
+    // Build cumulative datasets
     const datasets = Object.values(athletesData).map(a => {
         const daily = a.daily_distance_km[currentMonthIndex] || [];
         let cumulative = 0;
@@ -72,8 +83,38 @@ function renderChallenge(athletesData, monthNames) {
         }]
     });
 
-    // --- FORCE resize after showing container ---
+    // Fix stretching: resize after showing container
     setTimeout(() => {
         if (challengeChart) challengeChart.resize();
     }, 50);
 }
+
+function initChallengeToggle() {
+    const toggle = document.getElementById("challengeToggle");
+    toggle.addEventListener("change", () => {
+        const container = document.getElementById("container");
+        const challengeContainer = document.getElementById("challengeContainer");
+        const on = toggle.checked;
+
+        container.style.display = on ? "none" : "flex";
+        challengeContainer.style.display = on ? "block" : "none";
+
+        const { athletesData, monthNames } = window.DASHBOARD.getData();
+
+        if (on) {
+            window.DASHBOARD.destroyCharts();
+            renderChallenge(athletesData, monthNames);
+        } else {
+            destroyChallenge();
+            window.DASHBOARD.renderDashboard();
+        }
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    if (window.DASHBOARD && window.DASHBOARD.getData) {
+        initChallengeToggle();
+    } else {
+        console.error("Dashboard not loaded yet.");
+    }
+});
