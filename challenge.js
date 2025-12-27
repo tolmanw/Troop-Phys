@@ -5,11 +5,32 @@ const athleteColors = {};
 
 // --- Root CSS variables for easy control ---
 const root = document.documentElement;
-root.style.setProperty('--challenge-width', '700px');       // Card width
-root.style.setProperty('--challenge-height', '400px');      // Chart height
-root.style.setProperty('--challenge-padding', '15px');      // Card padding
-root.style.setProperty('--challenge-padding-right', '60px'); // Extra right padding for athlete images
-root.style.setProperty('--font-size', '8px');               // Font size for chart labels
+
+// Default desktop styles
+function setDefaultStyles() {
+    root.style.setProperty('--challenge-width', '700px');       
+    root.style.setProperty('--challenge-height', '400px');      
+    root.style.setProperty('--challenge-padding', '15px');      
+    root.style.setProperty('--challenge-padding-right', '60px'); 
+    root.style.setProperty('--font-size', '8px');               
+}
+
+// Mobile overrides
+function applyMobileOverrides() {
+    if (window.innerWidth <= 600) {
+        root.style.setProperty('--challenge-width', '90%');       
+        root.style.setProperty('--challenge-height', '220px');     
+        root.style.setProperty('--challenge-padding', '8px');      
+        root.style.setProperty('--challenge-padding-right', '40px'); 
+        root.style.setProperty('--font-size', '6px');               
+    } else {
+        setDefaultStyles();
+    }
+}
+
+// Call on load and resize
+applyMobileOverrides();
+window.addEventListener('resize', applyMobileOverrides);
 
 function destroyChallenge() {
     if (challengeChart) {
@@ -49,20 +70,18 @@ function renderChallenge(athletesData, monthNames) {
     card.style.borderRadius = "20px";
     card.style.margin = "0";
 
-    // --- Set canvas dimensions for Chart.js ---
     canvas.width = parseInt(cardWidth);
     canvas.height = parseInt(chartHeight);
     canvas.style.width = "100%";
     canvas.style.height = chartHeight;
 
-    // --- Prepare data ---
+    // --- Prepare datasets ---
     const currentMonthIndex = monthNames.length - 1;
 
     const datasets = Object.values(athletesData).map(a => {
         const daily = a.daily_distance_km[currentMonthIndex] || [];
         let cumulative = 0;
 
-        // Use global cache so colors persist across toggles
         if (!athleteColors[a.display_name]) {
             const hue = Math.floor(Math.random() * 360);
             athleteColors[a.display_name] = `hsl(${hue}, 100%, 50%)`; // neon-style
@@ -71,7 +90,7 @@ function renderChallenge(athletesData, monthNames) {
         return {
             label: a.display_name,
             data: daily.map(d => +(cumulative += d * 0.621371).toFixed(2)), // km → mi
-            borderColor: athleteColors[a.display_name], // use cached color
+            borderColor: athleteColors[a.display_name],
             fill: false,
             tension: 0.3,
             pointRadius: 0,
@@ -109,7 +128,7 @@ function renderChallenge(athletesData, monthNames) {
                 y: { 
                     min: 0, 
                     max: maxDistanceMi,
-                    title: { display: true, text: "Cumulative Distance (mi)", font: { size: fontSize } },
+                    title: { display: true, text: "Cumulative Distance (miles)", font: { size: fontSize } },
                     ticks: { font: { size: fontSize } }
                 }
             }
@@ -152,14 +171,12 @@ function initChallengeToggle() {
         const container = document.getElementById("container");
         const challengeContainer = document.getElementById("challengeContainer");
         const monthSelector = document.getElementById("dailyMonthSelector");
-        const monthLabel = monthSelector.previousElementSibling; // label before select
+        const monthLabel = monthSelector.previousElementSibling;
         const on = toggle.checked;
 
-        // Toggle chart vs dashboard
         container.style.display = on ? "none" : "flex";
         challengeContainer.style.display = on ? "block" : "none";
 
-        // Hide/show the month label and selector based on toggle
         if (monthSelector) monthSelector.style.display = on ? "none" : "inline-block";
         if (monthLabel) monthLabel.style.display = on ? "none" : "inline-block";
 
@@ -175,8 +192,9 @@ function initChallengeToggle() {
     });
 }
 
-// --- Initialize toggle on page load ---
+// --- Initialize ---
 document.addEventListener("DOMContentLoaded", () => {
+    applyMobileOverrides(); // ensure mobile styles applied on load
     if (window.DASHBOARD && window.DASHBOARD.getData) {
         initChallengeToggle();
     } else {
