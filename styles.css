@@ -1,161 +1,65 @@
-:root {
-    --daily-width: 305px;
-    --daily-height: 170px;
-    --bottom-width: 120px;
-    --bottom-height: 120px;
-    --card-width: 330px;
-    --card-gap: 10px;
-    --chart-padding: 10px;
-    --font-size: 8px;
-    --title-size: 8px;
-    --bar-thickness: 7;
-}
-
 body {
-    background: #0d1117;
-    color: #e6edf3;
-    font-family: Arial, sans-serif;
-    padding: 20px;
-    font-size: 14px;
-    position: relative;
+  background: #111;
+  color: #eee;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
 }
 
-label {
-    font-size: 14px;
+header {
+  background: #222;
+  padding: 20px;
+  text-align: center;
+  border-bottom: 1px solid #333;
 }
 
-select, input[type=checkbox] {
-    margin-bottom: 10px;
+h1 {
+  margin: 0;
+  font-size: 2rem;
+  color: #fff;
 }
 
-#container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--card-gap);
+#activity-selector {
+  margin-top: 10px;
 }
 
-.card {
-    background: #1b1f25;
-    padding: var(--chart-padding);
-    border-radius: 12px;
-    margin-bottom: var(--card-gap);
-    width: var(--card-width);
-    display: inline-block;
-    vertical-align: top;
+select {
+  padding: 6px;
+  background: #333;
+  color: #fff;
+  border: 1px solid #444;
+  border-radius: 4px;
 }
 
-.athlete {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-.athlete img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-}
-.athlete h2 {
-    font-size: 1em;
-    margin: 0;
+main {
+  max-width: 1000px;
+  margin: auto;
+  padding: 20px;
 }
 
-.chart-tile {
-    background: #2a2e36;
-    border: 1px solid #555;
-    border-radius: 8px;
-    padding: var(--chart-padding);
-    display: flex;
-    flex-direction: column;
+section {
+  margin-bottom: 40px;
 }
 
-.daily-chart-wrapper {
-    width: var(--daily-width);
-    height: var(--daily-height);
-    margin: 0 auto var(--card-gap) auto;
-}
-.daily-chart-wrapper canvas {
-    width: 100% !important;
-    height: 100% !important;
-}
-
-.bottom-charts {
-    display: flex;
-    justify-content: space-between;
-    gap: 5px;
-}
-.bottom-charts .chart-tile {
-    width: var(--bottom-width);
-    height: var(--bottom-height);
-}
-.bottom-charts .chart-tile canvas {
-    flex: 1;
-    width: 100% !important;
+#leaderboard .athlete {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  margin-bottom: 10px;
 }
 
-.chart-tile h3 {
-    margin: 0 0 3px 0;
-    font-size: var(--title-size);
-    color: #c9d1d9;
-    text-align: center;
+#leaderboard img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  margin-right: 15px;
 }
 
-#logo {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-/* --- Mobile Overrides --- */
-@media (max-width: 600px) {
-    :root {
-        --daily-width: 92%;       
-        --daily-height: 140px;
-        --bottom-width: 30%;
-        --bottom-height: 90px;
-        --card-width: 95%;
-        --card-gap: 12px;
-        --chart-padding: 10px;
-        --font-size: 6px;
-        --title-size: 6px;
-        --bar-thickness: 4;
-    }
-
-    body {
-        padding: 10px;
-        font-size: 12px;
-    }
-
-    select {
-        font-size: 12px;
-        padding: 4px 8px;
-    }
-
-    .card {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .daily-chart-wrapper {
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    .bottom-charts {
-        flex-direction: row;
-        justify-content: space-between;
-        flex-wrap: nowrap;
-        gap: 10px;
-        width: 100%;
-    }
-
-    .bottom-charts .chart-tile {
-        flex: 1 1 30%;
-        max-width: 30%;
-        margin-bottom: 0;
-    }
+canvas {
+  background: #1a1a1a;
+  padding: 10px;
+  border-radius: 10px;
 }
