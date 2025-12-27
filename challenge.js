@@ -15,13 +15,13 @@ function setDefaultStyles() {
     root.style.setProperty('--font-size', '8px');               
 }
 
-// Apply mobile adjustments dynamically
-function getMobileSettings() {
+// Mobile / desktop settings
+function getSettings() {
     const isMobile = window.innerWidth <= 600;
     return {
         fontSize: isMobile ? 6 : 8,
         athleteImgSize: isMobile ? 20 : 40,
-        chartHeight: isMobile ? 250 : 400,
+        chartHeight: isMobile ? 250 : 400, // used for card height
         chartPadding: isMobile ? 8 : 15,
         paddingRight: isMobile ? 40 : 60,
     };
@@ -51,7 +51,7 @@ function renderChallenge(athletesData, monthNames) {
     const ctx = canvas.getContext("2d");
 
     // --- Mobile / desktop settings ---
-    const { fontSize, athleteImgSize, chartHeight, chartPadding, paddingRight } = getMobileSettings();
+    const { fontSize, athleteImgSize, chartHeight, chartPadding, paddingRight } = getSettings();
 
     // --- Apply styles dynamically ---
     card.style.width = '100%';
@@ -59,9 +59,10 @@ function renderChallenge(athletesData, monthNames) {
     card.style.background = "#1b1f25";
     card.style.borderRadius = "20px";
     card.style.margin = "0";
+    card.style.height = chartHeight + "px";  // constrain height to prevent over-expansion
 
     canvas.style.width = "100%";
-    canvas.style.height = chartHeight + "px";
+    canvas.style.height = "100%"; // canvas fills container height
 
     // --- Prepare datasets ---
     const currentMonthIndex = monthNames.length - 1;
