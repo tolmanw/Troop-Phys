@@ -42,7 +42,7 @@ function renderChallenge(athletesData, monthNames) {
     card.style.padding = chartPadding;
     card.style.background = "#1b1f25";
     card.style.borderRadius = "20px";
-    card.style.margin = "0 auto"; // center card
+    card.style.margin = "0"; // center card
     canvas.style.width = "100%";
     canvas.style.height = chartHeight;
 
@@ -70,7 +70,7 @@ function renderChallenge(athletesData, monthNames) {
     }
 
     const labels = datasets[0].data.map((_, i) => i + 1);
-    const maxDistanceMi = Math.max(...datasets.flatMap(d => d.data)) + 2; // 2 mile buffer
+    const maxDistanceMi = Math.max(...datasets.flatMap(d => d.data)) + 1; // 1 mile buffer
 
     // --- Create chart ---
     challengeChart = new Chart(ctx, {
