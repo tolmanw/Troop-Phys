@@ -19,8 +19,23 @@ function renderChallenge(athletesData, monthNames) {
         </div>
     `;
 
+    const card = container.querySelector(".challenge-card");
     const canvas = document.getElementById("challengeChartCanvas");
     const ctx = canvas.getContext("2d");
+
+    // --- Simplified card styling ---
+    card.style.width = "95%";
+    card.style.maxWidth = "1000px";
+    card.style.margin = "0 auto";
+    card.style.padding = "20px";
+    card.style.background = "#1b1f25";
+    card.style.borderRadius = "12px";
+
+    // --- Set canvas internal size (prevents stretching) ---
+    const canvasWidth = Math.min(card.clientWidth, 800); // max width 800px
+    const canvasHeight = 400;                              // fixed medium height
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
 
     const currentMonthIndex = monthNames.length - 1;
 
@@ -52,8 +67,8 @@ function renderChallenge(athletesData, monthNames) {
         type: "line",
         data: { labels, datasets },
         options: {
-            responsive: false,          // respect CSS fixed size
-            maintainAspectRatio: false,
+            responsive: false,          // prevent Chart.js from auto resizing
+            maintainAspectRatio: false, // respect fixed canvas size
             plugins: { legend: { display: true, position: "bottom" } },
             scales: {
                 x: { title: { display: true, text: "Day of Month" }, ticks: { maxRotation:0, minRotation:0 } },
