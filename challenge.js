@@ -151,11 +151,17 @@ function initChallengeToggle() {
     toggle.addEventListener("change", () => {
         const container = document.getElementById("container");
         const challengeContainer = document.getElementById("challengeContainer");
+        const monthSelector = document.getElementById("dailyMonthSelector");
+        const monthLabel = monthSelector.previousElementSibling; // label before select
         const on = toggle.checked;
 
-        // Only toggle the chart and dashboard; leave labels/text visible
+        // Toggle chart vs dashboard
         container.style.display = on ? "none" : "flex";
         challengeContainer.style.display = on ? "block" : "none";
+
+        // Hide/show the month label and selector based on toggle
+        if (monthSelector) monthSelector.style.display = on ? "none" : "inline-block";
+        if (monthLabel) monthLabel.style.display = on ? "none" : "inline-block";
 
         const { athletesData, monthNames } = window.DASHBOARD.getData();
 
@@ -169,14 +175,8 @@ function initChallengeToggle() {
     });
 }
 
-// --- Hide only the Daily Distance Month label and selector ---
+// --- Initialize toggle on page load ---
 document.addEventListener("DOMContentLoaded", () => {
-    const monthSelector = document.getElementById("dailyMonthSelector");
-    const monthLabel = monthSelector.previousElementSibling; // label before select
-
-    if (monthSelector) monthSelector.style.display = "none";
-    if (monthLabel) monthLabel.style.display = "none";
-
     if (window.DASHBOARD && window.DASHBOARD.getData) {
         initChallengeToggle();
     } else {
