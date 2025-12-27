@@ -105,7 +105,7 @@ function renderChallenge(athletesData, monthNames) {
                 y: { 
                     min: 0, 
                     max: maxDistanceMi,
-                    title: { display: true, text: "Cumulative Distance (mi)", font: { size: fontSize } },
+                    title: { display: true, text: "Cumulative Distance (miles)", font: { size: fontSize } },
                     ticks: { font: { size: fontSize } }
                 }
             }
