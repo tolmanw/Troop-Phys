@@ -1,5 +1,8 @@
 let challengeChart = null;
 
+// --- Global neon color cache ---
+const athleteColors = {};
+
 // --- Root CSS variables for easy control ---
 const root = document.documentElement;
 root.style.setProperty('--challenge-width', '700px');       // Card width
@@ -55,14 +58,11 @@ function renderChallenge(athletesData, monthNames) {
     // --- Prepare data ---
     const currentMonthIndex = monthNames.length - 1;
 
-    // Cache vibrant neon colors for athletes
-    const athleteColors = {};
-
     const datasets = Object.values(athletesData).map(a => {
         const daily = a.daily_distance_km[currentMonthIndex] || [];
         let cumulative = 0;
 
-        // Assign a vibrant neon color if not already cached
+        // Use global cache so colors persist across toggles
         if (!athleteColors[a.display_name]) {
             const hue = Math.floor(Math.random() * 360);
             athleteColors[a.display_name] = `hsl(${hue}, 100%, 50%)`; // neon-style
@@ -71,7 +71,7 @@ function renderChallenge(athletesData, monthNames) {
         return {
             label: a.display_name,
             data: daily.map(d => +(cumulative += d * 0.621371).toFixed(2)), // km → mi
-            borderColor: athleteColors[a.display_name], // use cached neon color
+            borderColor: athleteColors[a.display_name], // use cached color
             fill: false,
             tension: 0.3,
             pointRadius: 0,
@@ -87,7 +87,7 @@ function renderChallenge(athletesData, monthNames) {
     }
 
     const labels = datasets[0].data.map((_, i) => i + 1);
-    const maxDistanceMi = Math.ceil(Math.max(...datasets.flatMap(d => d.data)) + 1); // +1 mile buffer rounded up
+    const maxDistanceMi = Math.ceil(Math.max(...datasets.flatMap(d => d.data)) + 1);
 
     // --- Create chart ---
     challengeChart = new Chart(ctx, {
@@ -125,7 +125,6 @@ function renderChallenge(athletesData, monthNames) {
                     let xPos = x.getPixelForValue(lastIndex + 1);
                     let yPos = y.getPixelForValue(dataset.data[lastIndex]);
 
-                    // Ensure the image is fully visible with right padding
                     const size = window.innerWidth <= 600 ? 20 : 40;
                     xPos = Math.min(xPos, canvas.width - size/2 - paddingRight);
 
@@ -134,7 +133,7 @@ function renderChallenge(athletesData, monthNames) {
                     img.onload = () => {
                         ctx.save();
                         ctx.beginPath();
-                        ctx.arc(xPos, yPos, size / 2, 0, Math.PI * 2); // circle clipping
+                        ctx.arc(xPos, yPos, size / 2, 0, Math.PI * 2);
                         ctx.closePath();
                         ctx.clip();
                         ctx.drawImage(img, xPos - size / 2, yPos - size / 2, size, size);
@@ -146,11 +145,34 @@ function renderChallenge(athletesData, monthNames) {
     });
 }
 
-// --- Initialize chart on page load ---
+// --- Toggle logic ---
+function initChallengeToggle() {
+    const toggle = document.getElementById("challengeToggle");
+    toggle.addEventListener("change", () => {
+        const container = document.getElementById("container");
+        const challengeContainer = document.getElementById("challengeContainer");
+        const on = toggle.checked;
+
+        // Only toggle the chart and dashboard; leave labels/text visible
+        container.style.display = on ? "none" : "flex";
+        challengeContainer.style.display = on ? "block" : "none";
+
+        const { athletesData, monthNames } = window.DASHBOARD.getData();
+
+        if (on) {
+            window.DASHBOARD.destroyCharts();
+            renderChallenge(athletesData, monthNames);
+        } else {
+            destroyChallenge();
+            window.DASHBOARD.renderDashboard();
+        }
+    });
+}
+
+// --- Initialize toggle on page load ---
 document.addEventListener("DOMContentLoaded", () => {
     if (window.DASHBOARD && window.DASHBOARD.getData) {
-        const { athletesData, monthNames } = window.DASHBOARD.getData();
-        renderChallenge(athletesData, monthNames);
+        initChallengeToggle();
     } else {
         console.error("Dashboard not loaded yet.");
     }
