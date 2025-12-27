@@ -45,6 +45,10 @@ function renderChallenge(athletesData, monthNames) {
     card.style.background = "#1b1f25";
     card.style.borderRadius = "20px";
     card.style.margin = "0";
+
+    // --- Set canvas dimensions for Chart.js ---
+    canvas.width = parseInt(cardWidth);
+    canvas.height = parseInt(chartHeight);
     canvas.style.width = "100%";
     canvas.style.height = chartHeight;
 
@@ -70,7 +74,7 @@ function renderChallenge(athletesData, monthNames) {
             borderColor: athleteColors[a.display_name], // use cached neon color
             fill: false,
             tension: 0.3,
-            pointRadius: 0, // remove points
+            pointRadius: 0,
             borderWidth: 3
         };
     });
@@ -105,7 +109,7 @@ function renderChallenge(athletesData, monthNames) {
                 y: { 
                     min: 0, 
                     max: maxDistanceMi,
-                    title: { display: true, text: "Cumulative Distance (miles)", font: { size: fontSize } },
+                    title: { display: true, text: "Cumulative Distance (mi)", font: { size: fontSize } },
                     ticks: { font: { size: fontSize } }
                 }
             }
@@ -142,34 +146,11 @@ function renderChallenge(athletesData, monthNames) {
     });
 }
 
-// --- Toggle logic ---
-function initChallengeToggle() {
-    const toggle = document.getElementById("challengeToggle");
-    toggle.addEventListener("change", () => {
-        const container = document.getElementById("container");
-        const challengeContainer = document.getElementById("challengeContainer");
-        const monthSelector = document.getElementById("dailyMonthSelector");
-        const on = toggle.checked;
-
-        container.style.display = on ? "none" : "flex";
-        monthSelector.style.display = on ? "none" : "inline-block"; // hide dropdown
-        challengeContainer.style.display = on ? "block" : "none";
-
-        const { athletesData, monthNames } = window.DASHBOARD.getData();
-
-        if (on) {
-            window.DASHBOARD.destroyCharts();
-            renderChallenge(athletesData, monthNames);
-        } else {
-            destroyChallenge();
-            window.DASHBOARD.renderDashboard();
-        }
-    });
-}
-
+// --- Initialize chart on page load ---
 document.addEventListener("DOMContentLoaded", () => {
     if (window.DASHBOARD && window.DASHBOARD.getData) {
-        initChallengeToggle();
+        const { athletesData, monthNames } = window.DASHBOARD.getData();
+        renderChallenge(athletesData, monthNames);
     } else {
         console.error("Dashboard not loaded yet.");
     }
