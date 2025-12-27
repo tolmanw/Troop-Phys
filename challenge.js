@@ -25,7 +25,7 @@ function renderChallenge(athletesData, monthNames) {
 
     // --- Read CSS variables ---
     const style = getComputedStyle(card);
-    const cardWidth = parseInt(style.getPropertyValue("--card-width")) || 660;
+    const cardWidth = parseInt(style.getPropertyValue("--card-width")) || 330;
     const chartPadding = parseInt(style.getPropertyValue("--chart-padding")) || 10;
     const fontSize = parseInt(style.getPropertyValue("--font-size")) || 8;
 
@@ -33,7 +33,7 @@ function renderChallenge(athletesData, monthNames) {
     card.style.width = cardWidth + "px";
     card.style.margin = "0";
     card.style.padding = chartPadding + "px";
-    card.style.paddingBottom = "50px"; // extra space for x-axis and images
+    card.style.paddingBottom = "20px";
     card.style.background = "#1b1f25";
     card.style.borderRadius = "20px";
     card.style.fontSize = fontSize + "px";
