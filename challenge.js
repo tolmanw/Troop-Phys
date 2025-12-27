@@ -15,22 +15,17 @@ function setDefaultStyles() {
     root.style.setProperty('--font-size', '8px');               
 }
 
-// Mobile overrides
-function applyMobileOverrides() {
-    if (window.innerWidth <= 600) {
-        root.style.setProperty('--challenge-width', '90%');       
-        root.style.setProperty('--challenge-height', '220px');     
-        root.style.setProperty('--challenge-padding', '8px');      
-        root.style.setProperty('--challenge-padding-right', '40px'); 
-        root.style.setProperty('--font-size', '6px');               
-    } else {
-        setDefaultStyles();
-    }
+// Apply mobile adjustments dynamically
+function getMobileSettings() {
+    const isMobile = window.innerWidth <= 600;
+    return {
+        fontSize: isMobile ? 6 : 8,
+        athleteImgSize: isMobile ? 20 : 40,
+        chartHeight: isMobile ? 250 : 400,
+        chartPadding: isMobile ? 8 : 15,
+        paddingRight: isMobile ? 40 : 60,
+    };
 }
-
-// Call on load and resize
-applyMobileOverrides();
-window.addEventListener('resize', applyMobileOverrides);
 
 function destroyChallenge() {
     if (challengeChart) {
@@ -55,25 +50,18 @@ function renderChallenge(athletesData, monthNames) {
     const canvas = document.getElementById("challengeChartCanvas");
     const ctx = canvas.getContext("2d");
 
-    // --- Read root CSS variables ---
-    const style = getComputedStyle(root);
-    const cardWidth = style.getPropertyValue('--challenge-width') || '700px';
-    const chartHeight = style.getPropertyValue('--challenge-height') || '400px';
-    const chartPadding = parseInt(style.getPropertyValue('--challenge-padding')) || 15;
-    const paddingRight = parseInt(style.getPropertyValue('--challenge-padding-right')) || 60;
-    const fontSize = parseInt(style.getPropertyValue('--font-size')) || 8;
+    // --- Mobile / desktop settings ---
+    const { fontSize, athleteImgSize, chartHeight, chartPadding, paddingRight } = getMobileSettings();
 
     // --- Apply styles dynamically ---
-    card.style.width = cardWidth;
+    card.style.width = '100%';
     card.style.padding = `${chartPadding}px`;
     card.style.background = "#1b1f25";
     card.style.borderRadius = "20px";
     card.style.margin = "0";
 
-    canvas.width = parseInt(cardWidth);
-    canvas.height = parseInt(chartHeight);
     canvas.style.width = "100%";
-    canvas.style.height = chartHeight;
+    canvas.style.height = chartHeight + "px";
 
     // --- Prepare datasets ---
     const currentMonthIndex = monthNames.length - 1;
@@ -113,7 +101,7 @@ function renderChallenge(athletesData, monthNames) {
         type: "line",
         data: { labels, datasets },
         options: {
-            responsive: false,
+            responsive: true,
             maintainAspectRatio: false,
             layout: { padding: { bottom: chartPadding, right: paddingRight } },
             plugins: {
@@ -128,7 +116,7 @@ function renderChallenge(athletesData, monthNames) {
                 y: { 
                     min: 0, 
                     max: maxDistanceMi,
-                    title: { display: true, text: "Cumulative Distance (miles)", font: { size: fontSize } },
+                    title: { display: true, text: "Cumulative Distance (mi)", font: { size: fontSize } },
                     ticks: { font: { size: fontSize } }
                 }
             }
@@ -144,8 +132,8 @@ function renderChallenge(athletesData, monthNames) {
                     let xPos = x.getPixelForValue(lastIndex + 1);
                     let yPos = y.getPixelForValue(dataset.data[lastIndex]);
 
-                    const size = window.innerWidth <= 600 ? 20 : 40;
-                    xPos = Math.min(xPos, canvas.width - size/2 - paddingRight);
+                    const size = athleteImgSize;
+                    xPos = Math.min(xPos, chart.width - size/2 - paddingRight);
 
                     const img = new Image();
                     img.src = a.profile;
@@ -194,9 +182,15 @@ function initChallengeToggle() {
 
 // --- Initialize ---
 document.addEventListener("DOMContentLoaded", () => {
-    applyMobileOverrides(); // ensure mobile styles applied on load
     if (window.DASHBOARD && window.DASHBOARD.getData) {
         initChallengeToggle();
+        window.addEventListener('resize', () => {
+            if (challengeChart) {
+                destroyChallenge();
+                const { athletesData, monthNames } = window.DASHBOARD.getData();
+                renderChallenge(athletesData, monthNames);
+            }
+        });
     } else {
         console.error("Dashboard not loaded yet.");
     }
