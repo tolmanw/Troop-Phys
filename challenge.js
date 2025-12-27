@@ -38,7 +38,7 @@ function renderChallenge(athletesData, monthNames) {
     if (screenWidth <= 600) {
         // Mobile
         canvas.width = card.clientWidth;
-        canvas.height = 450; // taller on mobile for readability
+        canvas.height = 300; // taller on mobile for readability
     } else {
         // Desktop / tablet
         canvas.width = card.clientWidth;
