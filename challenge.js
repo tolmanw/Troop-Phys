@@ -23,29 +23,20 @@ function renderChallenge(athletesData, monthNames) {
     const canvas = document.getElementById("challengeChartCanvas");
     const ctx = canvas.getContext("2d");
 
-    // --- Integrated styling ---
-    if (window.innerWidth <= 600) {
-        // Mobile
-        card.style.width = "95%";
-        card.style.maxWidth = "100%";
-        card.style.padding = "12px";
-        canvas.style.minHeight = "300px";
-    } else {
-        // Desktop
-        card.style.width = "95%";
-        card.style.maxWidth = "1000px"; // bigger desktop width
-        card.style.padding = "20px";
-        canvas.style.minHeight = "500px"; // taller chart
-    }
+    // --- Simplified sizing ---
+    card.style.width = "95%";
+    card.style.maxWidth = "1000px";
     card.style.margin = "0 auto";
+    card.style.padding = "20px";
     card.style.background = "#1b1f25";
     card.style.borderRadius = "12px";
-    canvas.style.display = "block";
+
+    // Set canvas height (desktop vs mobile)
     canvas.style.width = "100%";
+    canvas.style.height = window.innerWidth <= 600 ? "350px" : "600px";
 
     const currentMonthIndex = monthNames.length - 1;
 
-    // Build datasets
     const datasets = Object.values(athletesData).map(a => {
         const daily = a.daily_distance_km[currentMonthIndex] || [];
         let cumulative = 0;
@@ -55,7 +46,7 @@ function renderChallenge(athletesData, monthNames) {
             borderColor: `hsl(${Math.random()*360},70%,60%)`,
             fill: false,
             tension: 0.3,
-            pointRadius: 4,
+            pointRadius: 5,
             borderWidth: 3
         };
     });
@@ -70,16 +61,12 @@ function renderChallenge(athletesData, monthNames) {
     const labels = datasets[0].data.map((_, i) => i + 1);
     const maxDistance = Math.max(...datasets.flatMap(d => d.data), 10);
 
-    // Set aspect ratio: smaller = taller chart
-    const aspectRatio = window.innerWidth <= 600 ? 2 : 1.8;
-
     challengeChart = new Chart(ctx, {
         type: "line",
         data: { labels, datasets },
         options: {
             responsive: true,
-            maintainAspectRatio: true,
-            aspectRatio: aspectRatio,
+            maintainAspectRatio: false, // fill canvas
             plugins: { legend: { display: true, position: "bottom" } },
             scales: {
                 x: { title: { display: true, text: "Day of Month" }, ticks: { maxRotation:0, minRotation:0 } },
@@ -99,7 +86,7 @@ function renderChallenge(athletesData, monthNames) {
                     const img = new Image();
                     img.src = a.profile;
                     img.onload = () => {
-                        const size = window.innerWidth <= 600 ? 16 : 32; // bigger icons on desktop
+                        const size = window.innerWidth <= 600 ? 16 : 32;
                         ctx.drawImage(img, xPos - size / 2, yPos - size / 2, size, size);
                     };
                 });
@@ -107,12 +94,13 @@ function renderChallenge(athletesData, monthNames) {
         }]
     });
 
-    // Resize to fix stretching
+    // Resize chart after rendering to ensure full canvas
     setTimeout(() => {
         if (challengeChart) challengeChart.resize();
     }, 50);
 }
 
+// --- Toggle logic ---
 function initChallengeToggle() {
     const toggle = document.getElementById("challengeToggle");
     toggle.addEventListener("change", () => {
@@ -142,4 +130,3 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error("Dashboard not loaded yet.");
     }
 });
-
