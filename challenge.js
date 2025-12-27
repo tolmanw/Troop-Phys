@@ -20,6 +20,7 @@ function renderChallenge(athletesData, monthNames) {
     `;
 
     const canvas = document.getElementById("challengeChartCanvas");
+    const ctx = canvas.getContext("2d");
 
     const currentMonthIndex = monthNames.length - 1;
 
@@ -37,8 +38,9 @@ function renderChallenge(athletesData, monthNames) {
         };
     });
 
-    if (!datasets.some(d => d.data.length > 0)) {
-        container.querySelector("canvas").remove();
+    const hasData = datasets.some(d => d.data.length > 0);
+    if (!hasData) {
+        canvas.remove();
         container.innerHTML += "<p style='color:#e6edf3'>No challenge data for this month.</p>";
         return;
     }
@@ -46,16 +48,26 @@ function renderChallenge(athletesData, monthNames) {
     const labels = datasets[0].data.map((_, i) => i + 1);
     const maxDistance = Math.max(...datasets.flatMap(d => d.data), 10);
 
-    challengeChart = new Chart(canvas.getContext("2d"), {
+    const aspectRatio = window.innerWidth <= 600 ? 2 : 2.5;
+
+    challengeChart = new Chart(ctx, {
         type: "line",
         data: { labels, datasets },
         options: {
-            responsive: true,              // auto-resize
-            maintainAspectRatio: false,    // fill container
+            responsive: true,              // auto-resize with container
+            maintainAspectRatio: true,     // fixed aspect ratio
+            aspectRatio: aspectRatio,      // width / height ratio
             plugins: { legend: { display: true, position: "bottom" } },
             scales: {
-                x: { title: { display: true, text: "Day of Month" } },
-                y: { min: 0, max: maxDistance + 5, title: { display: true, text: "Cumulative Distance (mi)" } }
+                x: {
+                    title: { display: true, text: "Day of Month" },
+                    ticks: { maxRotation: 0, minRotation: 0 }
+                },
+                y: {
+                    min: 0,
+                    max: maxDistance + 5,
+                    title: { display: true, text: "Cumulative Distance (mi)" }
+                }
             }
         },
         plugins: [{
@@ -80,7 +92,6 @@ function renderChallenge(athletesData, monthNames) {
     });
 }
 
-// Toggle logic
 function initChallengeToggle() {
     const toggle = document.getElementById("challengeToggle");
     toggle.addEventListener("change", () => {
