@@ -67,7 +67,7 @@ function renderChallenge(athletesData, monthNames) {
 
     // --- Chart card styling ---
     card.style.width = cardWidth;
-    card.style.margin = "0 auto";
+    card.style.margin = "0";
     card.style.boxSizing = "border-box";
     card.style.padding = `
         ${headerPaddingTop}px
