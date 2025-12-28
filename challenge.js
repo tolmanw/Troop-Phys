@@ -24,6 +24,7 @@ function getSettings() {
         chartHeight: isMobile ? 300 : 400, // used for card height
         chartPadding: isMobile ? 10 : 15,
         paddingRight: isMobile ? 2 : 60,
+        cardWidth: isMobile ? '95%' : '700px'
     };
 }
 
