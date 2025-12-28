@@ -21,9 +21,9 @@ function getSettings() {
     return {
         fontSize: isMobile ? 6 : 8,
         athleteImgSize: isMobile ? 20 : 40,
-        chartHeight: isMobile ? 250 : 400, // used for card height
+        chartHeight: isMobile ? 200 : 400, // used for card height
         chartPadding: isMobile ? 8 : 15,
-        paddingRight: isMobile ? 8 : 60,
+        paddingRight: isMobile ? 5 : 60,
     };
 }
 
@@ -106,7 +106,7 @@ function renderChallenge(athletesData, monthNames) {
             maintainAspectRatio: false,
             layout: { padding: { bottom: chartPadding, right: paddingRight } },
             plugins: {
-                legend: { display: true, position: "bottom", labels: { font: { size: fontSize } } },
+                legend: { display: false, position: "bottom", labels: { font: { size: fontSize } } },
                 tooltip: { bodyFont: { size: fontSize }, titleFont: { size: fontSize } }
             },
             scales: {
@@ -117,7 +117,7 @@ function renderChallenge(athletesData, monthNames) {
                 y: { 
                     min: 0, 
                     max: maxDistanceMi,
-                    title: { display: true, text: "Cumulative Distance (mi)", font: { size: fontSize } },
+                    title: { display: true, text: "Cumulative Distance (miles)", font: { size: fontSize } },
                     ticks: { font: { size: fontSize } }
                 }
             }
