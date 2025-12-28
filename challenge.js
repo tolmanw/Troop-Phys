@@ -101,7 +101,10 @@ function renderChallenge(athletesData, monthNames) {
     summary.style.display = "flex";
     summary.style.flexDirection = "column";
     summary.style.gap = "4px"; // small vertical gap under each athlete
-    summary.style.paddingRight = paddingRight + "px"; // align with chart content
+
+    // --- ALIGN SUMMARY WITH CHART CONTENT ---
+    summary.style.paddingRight = paddingRight + "px"; // match chart's right padding
+    summary.style.paddingLeft = chartPadding + "px"; // match chart's left padding
     summary.style.fontSize = fontSize + "px";
     summary.style.color = "#e6edf3";
 
@@ -180,7 +183,8 @@ function renderChallenge(athletesData, monthNames) {
             layout: {
                 padding: {
                     bottom: chartPaddingBottom,
-                    right: paddingRight
+                    right: paddingRight,
+                    left: chartPadding // align chart content with summary
                 }
             },
             plugins: {
