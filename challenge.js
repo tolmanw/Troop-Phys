@@ -16,7 +16,7 @@ function getSettings() {
         paddingRight: isMobile ? 20 : 20,
         cardWidth: isMobile ? '95%' : '700px',
         headerPaddingTop: isMobile ? 12 : 12,
-        headerFontSize: isMobile ? 12 : 16 // ← header font size control
+        headerFontSize: isMobile ? 12 : 16 // header font size control
     };
 }
 
@@ -37,11 +37,20 @@ function renderChallenge(athletesData, monthNames) {
             <h2>Monthly Challenge</h2>
             <canvas id="challengeChartCanvas"></canvas>
         </div>
+
+        <div class="challenge-card challenge-summary-card">
+            <h3>Athlete Totals</h3>
+            <div class="challenge-summary"></div>
+        </div>
     `;
 
     const card = container.querySelector(".challenge-card");
     const canvas = document.getElementById("challengeChartCanvas");
     const ctx = canvas.getContext("2d");
+
+    const summaryCard = container.querySelector(".challenge-summary-card");
+    const summaryTitle = summaryCard.querySelector("h3");
+    const summary = summaryCard.querySelector(".challenge-summary");
 
     // --- Settings ---
     const {
@@ -78,6 +87,17 @@ function renderChallenge(athletesData, monthNames) {
     canvas.style.width = "100%";
     canvas.style.height = "100%";
 
+    // --- Summary card styling ---
+    summaryCard.style.width = cardWidth;
+    summaryCard.style.marginTop = "12px";
+    summaryCard.style.padding = isMobile ? "10px" : "12px";
+    summaryCard.style.background = "#1b1f25";
+    summaryCard.style.borderRadius = "15px";
+
+    summaryTitle.style.margin = "0 0 8px 0";
+    summaryTitle.style.fontSize = (fontSize + 2) + "px";
+    summaryTitle.style.color = "#e6edf3";
+
     // --- Prepare datasets ---
     const currentMonthIndex = monthNames.length - 1;
 
@@ -110,6 +130,37 @@ function renderChallenge(athletesData, monthNames) {
 
     const labels = datasets[0].data.map((_, i) => i + 1);
     const maxDistanceMi = Math.ceil(Math.max(...datasets.flatMap(d => d.data)) + 1);
+
+    // --- Create summary with avatars ---
+    const totals = datasets.map(d => ({
+        label: d.label,
+        color: d.borderColor,
+        total: d.data.length ? d.data[d.data.length - 1] : 0
+    }));
+
+    const avatarSize = isMobile ? 16 : 20;
+
+    summary.innerHTML = totals
+        .sort((a, b) => b.total - a.total)
+        .map(t => {
+            const athlete = Object.values(athletesData).find(a => a.display_name === t.label);
+            const profileSrc = athlete ? athlete.profile : "";
+            return `
+            <div style="
+                display:flex;
+                align-items:center;
+                gap:6px;
+                white-space:nowrap;
+            ">
+                <img src="${profileSrc}" 
+                     style="width:${avatarSize}px; height:${avatarSize}px; border-radius:50%; object-fit:cover;" 
+                     alt="${t.label}">
+                <span style="color:${t.color}">${t.label}</span>
+                <span style="opacity:0.7;">${t.total.toFixed(1)} mi</span>
+            </div>
+            `;
+        })
+        .join("");
 
     // --- Create chart ---
     challengeChart = new Chart(ctx, {
