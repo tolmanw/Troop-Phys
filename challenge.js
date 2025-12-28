@@ -3,27 +3,17 @@ let challengeChart = null;
 // --- Global neon color cache ---
 const athleteColors = {};
 
-// --- Root CSS variables for easy control ---
-const root = document.documentElement;
-
-// Default desktop styles
-function setDefaultStyles() {
-    root.style.setProperty('--challenge-width', '700px');       
-    root.style.setProperty('--challenge-height', '400px');      
-    root.style.setProperty('--challenge-padding', '15px');      
-    root.style.setProperty('--challenge-padding-right', '60px'); 
-    root.style.setProperty('--font-size', '8px');               
-}
-
-// Mobile / desktop settings
+// --- Mobile / desktop settings ---
 function getSettings() {
     const isMobile = window.innerWidth <= 600;
     return {
+        isMobile,
         fontSize: isMobile ? 6 : 8,
         athleteImgSize: isMobile ? 20 : 40,
-        chartHeight: isMobile ? 300 : 400, // used for card height
+        chartHeight: isMobile ? 320 : 400,
         chartPadding: isMobile ? 10 : 15,
-        paddingRight: isMobile ? 2 : 60,
+        chartPaddingBottom: isMobile ? 18 : 15,
+        paddingRight: isMobile ? 30 : 60,
         cardWidth: isMobile ? '95%' : '700px'
     };
 }
@@ -51,19 +41,28 @@ function renderChallenge(athletesData, monthNames) {
     const canvas = document.getElementById("challengeChartCanvas");
     const ctx = canvas.getContext("2d");
 
-    // --- Mobile / desktop settings ---
-    const { fontSize, athleteImgSize, chartHeight, chartPadding, paddingRight } = getSettings();
+    // --- Settings ---
+    const {
+        isMobile,
+        fontSize,
+        athleteImgSize,
+        chartHeight,
+        chartPadding,
+        chartPaddingBottom,
+        paddingRight,
+        cardWidth
+    } = getSettings();
 
-    // --- Apply styles dynamically ---
-    card.style.width = '100%';
+    // --- Card + canvas styling ---
+    card.style.width = cardWidth;
+    card.style.margin = "0 auto";
     card.style.padding = `${chartPadding}px`;
+    card.style.height = chartHeight + "px";
     card.style.background = "#1b1f25";
     card.style.borderRadius = "20px";
-    card.style.margin = "0";
-    card.style.height = chartHeight + "px";  // constrain height to prevent over-expansion
 
     canvas.style.width = "100%";
-    canvas.style.height = "100%"; // canvas fills container height
+    canvas.style.height = "100%";
 
     // --- Prepare datasets ---
     const currentMonthIndex = monthNames.length - 1;
@@ -74,17 +73,17 @@ function renderChallenge(athletesData, monthNames) {
 
         if (!athleteColors[a.display_name]) {
             const hue = Math.floor(Math.random() * 360);
-            athleteColors[a.display_name] = `hsl(${hue}, 100%, 50%)`; // neon-style
+            athleteColors[a.display_name] = `hsl(${hue}, 100%, 50%)`;
         }
 
         return {
             label: a.display_name,
-            data: daily.map(d => +(cumulative += d * 0.621371).toFixed(2)), // km → mi
+            data: daily.map(d => +(cumulative += d * 0.621371).toFixed(2)),
             borderColor: athleteColors[a.display_name],
-            fill: false,
+            borderWidth: 3,
             tension: 0.3,
-            pointRadius: 0,
-            borderWidth: 3
+            fill: false,
+            pointRadius: 0
         };
     });
 
@@ -105,20 +104,41 @@ function renderChallenge(athletesData, monthNames) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            layout: { padding: { bottom: chartPadding, right: paddingRight } },
+            layout: {
+                padding: {
+                    bottom: chartPaddingBottom,
+                    right: paddingRight
+                }
+            },
             plugins: {
-                legend: { display: false, position: "bottom", labels: { font: { size: fontSize } } },
-                tooltip: { bodyFont: { size: fontSize }, titleFont: { size: fontSize } }
+                legend: { display: false },
+                tooltip: {
+                    bodyFont: { size: fontSize },
+                    titleFont: { size: fontSize }
+                }
             },
             scales: {
-                x: { 
-                    title: { display: true, text: "Day of Month", font: { size: fontSize } },
-                    ticks: { font: { size: fontSize }, maxRotation: 0, minRotation: 0 }
+                x: {
+                    title: {
+                        display: true,
+                        text: "Day of Month",
+                        font: { size: fontSize }
+                    },
+                    ticks: {
+                        font: { size: fontSize },
+                        maxRotation: 0,
+                        minRotation: 0,
+                        padding: isMobile ? 10 : 6
+                    }
                 },
-                y: { 
-                    min: 0, 
+                y: {
+                    min: 0,
                     max: maxDistanceMi,
-                    title: { display: true, text: "Cumulative Distance (miles)", font: { size: fontSize } },
+                    title: {
+                        display: true,
+                        text: "Cumulative Distance (miles)",
+                        font: { size: fontSize }
+                    },
                     ticks: { font: { size: fontSize } }
                 }
             }
@@ -127,15 +147,17 @@ function renderChallenge(athletesData, monthNames) {
             id: "athleteImages",
             afterDatasetsDraw(chart) {
                 const { ctx, scales: { x, y } } = chart;
+
                 Object.values(athletesData).forEach((a, i) => {
                     const dataset = chart.data.datasets[i];
                     if (!dataset || !dataset.data.length) return;
+
                     const lastIndex = dataset.data.length - 1;
                     let xPos = x.getPixelForValue(lastIndex + 1);
                     let yPos = y.getPixelForValue(dataset.data[lastIndex]);
 
                     const size = athleteImgSize;
-                    xPos = Math.min(xPos, chart.width - size/2 - paddingRight);
+                    xPos = Math.min(xPos, chart.width - size / 2 - paddingRight);
 
                     const img = new Image();
                     img.src = a.profile;
@@ -143,7 +165,6 @@ function renderChallenge(athletesData, monthNames) {
                         ctx.save();
                         ctx.beginPath();
                         ctx.arc(xPos, yPos, size / 2, 0, Math.PI * 2);
-                        ctx.closePath();
                         ctx.clip();
                         ctx.drawImage(img, xPos - size / 2, yPos - size / 2, size, size);
                         ctx.restore();
@@ -157,11 +178,12 @@ function renderChallenge(athletesData, monthNames) {
 // --- Toggle logic ---
 function initChallengeToggle() {
     const toggle = document.getElementById("challengeToggle");
+
     toggle.addEventListener("change", () => {
         const container = document.getElementById("container");
         const challengeContainer = document.getElementById("challengeContainer");
         const monthSelector = document.getElementById("dailyMonthSelector");
-        const monthLabel = monthSelector.previousElementSibling;
+        const monthLabel = monthSelector?.previousElementSibling;
         const on = toggle.checked;
 
         container.style.display = on ? "none" : "flex";
@@ -182,11 +204,12 @@ function initChallengeToggle() {
     });
 }
 
-// --- Initialize ---
+// --- Init ---
 document.addEventListener("DOMContentLoaded", () => {
-    if (window.DASHBOARD && window.DASHBOARD.getData) {
+    if (window.DASHBOARD?.getData) {
         initChallengeToggle();
-        window.addEventListener('resize', () => {
+
+        window.addEventListener("resize", () => {
             if (challengeChart) {
                 destroyChallenge();
                 const { athletesData, monthNames } = window.DASHBOARD.getData();
