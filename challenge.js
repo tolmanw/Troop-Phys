@@ -39,7 +39,7 @@ function renderChallenge(athletesData, monthNames) {
         </div>
 
         <div class="challenge-card challenge-summary-card">
-            <h3>Athlete Totals</h3>
+            <h3>Totals</h3>
             <div class="challenge-summary"></div>
         </div>
     `;
