@@ -11,10 +11,11 @@ function getSettings() {
         fontSize: isMobile ? 6 : 8,
         athleteImgSize: isMobile ? 20 : 40,
         chartHeight: isMobile ? 340 : 500,
-        chartPadding: isMobile ? 10 : 10,
-        chartPaddingBottom: isMobile ? 50 : 80,
+        chartPadding: isMobile ? 10 : 20,
+        chartPaddingBottom: isMobile ? 50 : 60,
         paddingRight: isMobile ? 20 : 20,
-        cardWidth: isMobile ? '95%' : '700px'
+        cardWidth: isMobile ? '95%' : '700px',
+        headerPaddingTop: isMobile ? 6 : 10 // ← NEW: control header vertical position
     };
 }
 
@@ -50,16 +51,26 @@ function renderChallenge(athletesData, monthNames) {
         chartPadding,
         chartPaddingBottom,
         paddingRight,
-        cardWidth
+        cardWidth,
+        headerPaddingTop
     } = getSettings();
 
     // --- Card + canvas styling ---
     card.style.width = cardWidth;
     card.style.margin = "0";
-    card.style.padding = `${chartPadding}px`;
+    card.style.padding = `
+        ${headerPaddingTop}px
+        ${chartPadding}px
+        ${chartPadding}px
+        ${chartPadding}px
+    `;
     card.style.height = chartHeight + "px";
     card.style.background = "#1b1f25";
     card.style.borderRadius = "15px";
+
+    const title = card.querySelector("h2");
+    title.style.marginTop = "0";
+    title.style.marginBottom = isMobile ? "6px" : "10px";
 
     canvas.style.width = "100%";
     canvas.style.height = "100%";
@@ -119,11 +130,7 @@ function renderChallenge(athletesData, monthNames) {
             },
             scales: {
                 x: {
-                    title: {
-                        display: false,
-                        text: "Day of Month",
-                        font: { size: fontSize }
-                    },
+                    title: { display: false },
                     ticks: {
                         font: { size: fontSize },
                         maxRotation: 0,
