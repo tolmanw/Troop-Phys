@@ -88,7 +88,7 @@ function renderChallenge(athletesData, monthNames) {
     canvas.style.height = "100%";
 
     // --- Summary card styling ---
-    summaryCard.style.width = cardWidth;
+    summaryCard.style.width = cardWidth; // same width as chart card
     summaryCard.style.marginTop = "12px";
     summaryCard.style.padding = isMobile ? "10px" : "12px";
     summaryCard.style.background = "#1b1f25";
@@ -97,6 +97,13 @@ function renderChallenge(athletesData, monthNames) {
     summaryTitle.style.margin = "0 0 8px 0";
     summaryTitle.style.fontSize = (fontSize + 2) + "px";
     summaryTitle.style.color = "#e6edf3";
+
+    summary.style.display = "flex";
+    summary.style.flexDirection = "column";
+    summary.style.gap = "4px"; // small vertical gap under each athlete
+    summary.style.paddingRight = paddingRight + "px"; // align with chart content
+    summary.style.fontSize = fontSize + "px";
+    summary.style.color = "#e6edf3";
 
     // --- Prepare datasets ---
     const currentMonthIndex = monthNames.length - 1;
@@ -151,6 +158,7 @@ function renderChallenge(athletesData, monthNames) {
                 align-items:center;
                 gap:6px;
                 white-space:nowrap;
+                margin-bottom:4px; /* small gap under each athlete */
             ">
                 <img src="${profileSrc}" 
                      style="width:${avatarSize}px; height:${avatarSize}px; border-radius:50%; object-fit:cover;" 
