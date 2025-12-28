@@ -89,7 +89,7 @@ function renderChallenge(athletesData, monthNames) {
 
     // --- Summary card styling (MATCHES chart card width & padding) ---
     summaryCard.style.width = cardWidth;
-    summaryCard.style.margin = "12px auto 0";
+    summaryCard.style.margin = "0";
     summaryCard.style.boxSizing = "border-box";
     summaryCard.style.padding = `
         ${isMobile ? 10 : 12}px
