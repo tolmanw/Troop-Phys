@@ -10,7 +10,7 @@ function getSettings() {
         isMobile,
         fontSize: isMobile ? 6 : 8,
         athleteImgSize: isMobile ? 20 : 40,
-        chartHeight: isMobile ? 340 : 400,
+        chartHeight: isMobile ? 340 : 450,
         chartPadding: isMobile ? 10 : 15,
         chartPaddingBottom: isMobile ? 50 : 15,
         paddingRight: isMobile ? 20 : 60,
