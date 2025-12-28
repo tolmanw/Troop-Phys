@@ -99,7 +99,7 @@ function renderChallenge(athletesData, monthNames) {
     summaryCard.style.borderRadius = "15px";
 
     summaryTitle.style.margin = "0 0 8px 0";
-    summaryTitle.style.fontSize = (fontSize + 2) + "px";
+    summaryTitle.style.fontSize = headerFontSize + "px";
     summaryTitle.style.color = "#e6edf3";
 
     summary.style.display = "flex";
