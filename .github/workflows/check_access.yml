@@ -1,4 +1,4 @@
-name: Check Strava Private Access
+name: Check Access
 
 # Trigger manually
 on:
@@ -24,8 +24,8 @@ jobs:
         run: pip install requests
 
       # Step 4: Run the Strava private access check
-      - name: Run Strava private access check
-        run: python check_private_access.py
+      - name: Check Access
+        run: python check_access.py
         env:
           STRAVA_CLIENT_ID: ${{ secrets.STRAVA_CLIENT_ID }}
           STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
