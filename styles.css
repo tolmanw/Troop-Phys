@@ -77,45 +77,38 @@ canvas {
   display: block;            /* ensures proper layout */
 }
 
-/* Pill-shaped toggle-style for dropdown */
+/* --- Toggle-like Month Selector --- */
 .toggle-like {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     cursor: pointer;
     font-size: 14px;
+    margin-bottom: 8px;
 }
 
 .toggle-like select {
     appearance: none;
     -webkit-appearance: none;
-    background-color: #1b1f25; /* match card color */
+    background-color: #1b1f25;
     color: #e6edf3;
     border: 1px solid #555;
-    border-radius: 22px;
-    padding: 4px 12px;
-    height: 28px; /* match toggle height */
+    border-radius: 22px;        /* same pill shape */
+    padding: 4px 28px 4px 12px; /* room for arrow */
+    height: 22px;              /* EXACT match to toggle */
     line-height: 1;
     cursor: pointer;
+
     background-image: url("data:image/svg+xml,%3Csvg fill='white' height='12' viewBox='0 0 24 24' width='12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 8px center;
-    background-size: 12px 12px;
+    background-size: 12px;
 }
 
 .toggle-like select:focus {
     outline: none;
-    border-color: #2da44e;
+    border-color: #2da44e; /* same green as toggle ON */
 }
 
-@media (max-width: 600px) {
-    .toggle-like select {
-        font-size: 12px;
-        height: 22px;
-        padding: 2px 10px;
-        background-position: right 6px center;
-        background-size: 10px 10px;
-    }
-}
 
 
