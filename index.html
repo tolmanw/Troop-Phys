@@ -117,6 +117,7 @@ select, input[type=checkbox] {
     border-radius: 50%;
     object-fit: cover;
 }
+
 /* --- Toggle Switch --- */
 .toggle-switch {
     display: inline-flex;
@@ -162,11 +163,22 @@ select, input[type=checkbox] {
 
 /* Optional: mobile scaling */
 @media (max-width: 600px) {
-    .toggle-switch { font-size: 12px; }
-    .toggle-switch .slider { width: 36px; height: 18px; }
-    .toggle-switch .slider::before { width: 14px; height: 14px; top: 2px; left: 2px; }
+    .toggle-switch {
+        font-size: 12px;
+    }
+    .toggle-switch .slider {
+        width: 36px;
+        height: 18px;
+    }
+    .toggle-switch .slider::before {
+        width: 14px;
+        height: 14px;
+        top: 2px;
+        left: 2px;
+    }
 }
 
+/* --- Mobile Overrides --- */
 @media (max-width: 600px) {
     :root {
         --daily-width: 92%;       
@@ -180,12 +192,40 @@ select, input[type=checkbox] {
         --title-size: 6px;
         --bar-thickness: 4;
     }
-    body { padding: 10px; font-size: 12px; }
-    select { font-size: 12px; padding: 4px 8px; }
-    .card { display: flex; flex-direction: column; }
-    .daily-chart-wrapper { margin-left: auto; margin-right: auto; }
-    .bottom-charts { flex-direction: row; justify-content: space-between; flex-wrap: nowrap; gap: 10px; width: 100%; }
-    .bottom-charts .chart-tile { flex: 1 1 30%; max-width: 30%; margin-bottom: 0; }
+
+    body {
+        padding: 10px;
+        font-size: 12px;
+    }
+
+    select {
+        font-size: 12px;
+        padding: 4px 8px;
+    }
+
+    .card {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .daily-chart-wrapper {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .bottom-charts {
+        flex-direction: row;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .bottom-charts .chart-tile {
+        flex: 1 1 30%;
+        max-width: 30%;
+        margin-bottom: 0;
+    }
 }
 </style>
 
@@ -212,7 +252,9 @@ select, input[type=checkbox] {
 let athletesData;
 let monthNames;
 const CHARTS = {};
+const EXTRA_GOAL = 480; // minutes
 
+// --- Dashboard functions ---
 function getBarThickness() {
     return window.innerWidth <= 600
         ? parseInt(getComputedStyle(document.documentElement).getPropertyValue('--bar-thickness'))
@@ -264,9 +306,22 @@ function updateDailyChart(alias, monthIndex){
             maintainAspectRatio:true,
             plugins:{ legend:{ display:false } },
             scales:{
-                x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0, font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) },
-                        callback: function(value, index){ return (index % 2 === 0) ? this.getLabelForValue(value) : ''; } } },
-                y:{ beginAtZero:true, suggestedMin: 0, ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } }
+                x:{
+                    ticks:{
+                        autoSkip:false,
+                        maxRotation:0,
+                        minRotation:0,
+                        font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) },
+                        callback: function(value, index){
+                            return (index % 2 === 0) ? this.getLabelForValue(value) : '';
+                        }
+                    }
+                },
+                y:{
+                    beginAtZero:true,
+                    suggestedMin: 0,
+                    ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } }
+                }
             }
         }
     });
@@ -284,9 +339,9 @@ function renderDashboard(){
 
     Object.entries(athletesData).forEach(([alias, athlete])=>{
         const monthlyDistanceMi = athlete.monthly_distances.map(d=> +(d*0.621371).toFixed(2));
-        const monthlyTimeHours = athlete.monthly_time.map(t => t/60); // convert minutes → hours
+        const monthlyTimeHours = athlete.monthly_time.map(t => +(t/60).toFixed(2)); // convert to hours
 
-        const EXTRA_GOAL_HOURS = 480 / 60; // 8 hours goal
+        const EXTRA_GOAL_HOURS = +(EXTRA_GOAL/60).toFixed(2);
         const extraMonths = [monthNames[prevMonthIndex], monthNames[monthIndex]];
         const extraTimeHours = [monthlyTimeHours[prevMonthIndex] || 0, monthlyTimeHours[monthIndex] || 0];
 
@@ -328,7 +383,7 @@ function renderDashboard(){
 
         const barThickness = getBarThickness();
 
-        // --- Monthly Distance ---
+        // Monthly Distance Chart
         CHARTS[`monthChart-${alias}`] = new Chart(document.getElementById(`monthChart-${alias}`), {
             type:"bar",
             data:{ labels: extraMonths, datasets:[{ data: [monthlyDistanceMi[prevMonthIndex], monthlyDistanceMi[monthIndex]], backgroundColor:"rgba(42,102,186,0.6)", barThickness }] },
@@ -344,30 +399,24 @@ function renderDashboard(){
             }
         });
 
-        // --- Helper: round up to next nice unit ---
-        function getNiceMax(values, unit=5){ 
-            return Math.ceil(Math.max(...values) / unit) * unit; 
-        }
-
-        const maxMonthlyTime = getNiceMax([...monthlyTimeHours, EXTRA_GOAL_HOURS]); // nice rounded max for y-axis
-
-        // --- Monthly Time ---
+        // Monthly Time Chart (hours)
+        const yMaxTime = Math.max(...extraTimeHours);
+        const suggestedMaxTime = Math.ceil(yMaxTime / 5) * 5; // round up to next multiple of 5
         CHARTS[`monthTimeChart-${alias}`] = new Chart(document.getElementById(`monthTimeChart-${alias}`), {
             type:"bar",
-            data:{ labels: extraMonths, datasets:[{ data: [monthlyTimeHours[prevMonthIndex], monthlyTimeHours[monthIndex]], backgroundColor:"rgba(45,173,131,0.6)", barThickness }] },
+            data:{ labels: extraMonths, datasets:[{ data: extraTimeHours, backgroundColor:"rgba(45,173,131,0.6)", barThickness }] },
             options:{
                 responsive:true,
                 maintainAspectRatio:false,
                 layout:{ padding:{ bottom:8 } },
                 plugins:{ legend:{ display:false } },
                 scales:{
-                    y:{ beginAtZero:true, suggestedMin:0, max: maxMonthlyTime, ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } },
+                    y:{ beginAtZero:true, suggestedMin:0, suggestedMax: suggestedMaxTime, ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } },
                     x:{ ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } }
                 }
             }
         });
 
-        // --- Extra Phys Goal ---
         const goalLinePlugin = {
             id: 'goalLine',
             afterDatasetsDraw(chart) {
@@ -387,7 +436,6 @@ function renderDashboard(){
             }
         };
 
-        const maxExtraTime = getNiceMax(extraTimeHours.concat(EXTRA_GOAL_HOURS));
         CHARTS[`extraChart-${alias}`] = new Chart(document.getElementById(`extraChart-${alias}`), {
             type:"bar",
             data:{ labels: extraMonths, datasets:[{ data: extraTimeHours, backgroundColor: extraTimeHours.map(v => v >= EXTRA_GOAL_HOURS ? "rgba(0,255,0,0.3)" : "rgba(255,0,0,0.3)"), barThickness }] },
@@ -397,7 +445,7 @@ function renderDashboard(){
                 layout:{ padding:{ bottom:8 } },
                 plugins:{ legend:{ display:false } },
                 scales:{
-                    y:{ beginAtZero:true, suggestedMin:0, max:maxExtraTime, ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } },
+                    y:{ beginAtZero:true, suggestedMin:0, suggestedMax: suggestedMaxTime, ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } },
                     x:{ ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } }
                 }
             },
@@ -408,6 +456,7 @@ function renderDashboard(){
     });
 }
 
+// Listen for month selector
 document.getElementById("dailyMonthSelector").addEventListener("change", ()=>{
     const monthIndex = parseInt(document.getElementById("dailyMonthSelector").value);
     Object.keys(athletesData).forEach(alias=>{
@@ -415,12 +464,16 @@ document.getElementById("dailyMonthSelector").addEventListener("change", ()=>{
     });
 });
 
+// --- Expose dashboard to challenge.js ---
 window.DASHBOARD = {
     renderDashboard,
-    destroyCharts: () => { Object.keys(CHARTS).forEach(k => CHARTS[k]?.destroy()); },
+    destroyCharts: () => {
+        Object.keys(CHARTS).forEach(k => CHARTS[k]?.destroy());
+    },
     getData: () => ({ athletesData, monthNames })
 };
 
+// Load initial data
 loadData();
 </script>
 <script src="challenge.js"></script>
