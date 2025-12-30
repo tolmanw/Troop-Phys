@@ -158,7 +158,7 @@ with open("data/athletes.json", "w") as f:
         {
             "athletes": athletes_out,
             "month_names": month_names,
-            "last_synced": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+            "last_synced": datetime.now(timezone.utc).strftime("%d-%m-%Y %H:%M")
         },
         f,
         indent=2
