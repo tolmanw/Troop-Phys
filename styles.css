@@ -77,37 +77,39 @@ canvas {
   display: block;            /* ensures proper layout */
 }
 
-#dailyMonthSelector {
-    appearance: none;          /* remove default arrow */
-    -webkit-appearance: none;
-    background-color: #1b1f25; /* same as card background */
-    color: #e6edf3;            /* text color */
-    border: 1px solid #555;    /* subtle border */
-    border-radius: 22px;       /* pill shape like toggle */
-    padding: 4px 12px;         /* padding inside pill */
-    font-size: 14px;           /* match toggle label */
+/* Pill-shaped toggle-style for dropdown */
+.toggle-like {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     cursor: pointer;
-    height: 28px;               /* same height as toggle */
+    font-size: 14px;
+}
+
+.toggle-like select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: #1b1f25; /* match card color */
+    color: #e6edf3;
+    border: 1px solid #555;
+    border-radius: 22px;
+    padding: 4px 12px;
+    height: 28px; /* match toggle height */
     line-height: 1;
-    position: relative;
+    cursor: pointer;
     background-image: url("data:image/svg+xml,%3Csvg fill='white' height='12' viewBox='0 0 24 24' width='12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 8px center;
     background-size: 12px 12px;
 }
 
-#dailyMonthSelector:focus {
+.toggle-like select:focus {
     outline: none;
     border-color: #2da44e;
 }
 
-#dailyMonthSelector::-ms-expand {   /* IE/Edge arrow */
-    display: none;
-}
-
-/* Mobile */
 @media (max-width: 600px) {
-    #dailyMonthSelector {
+    .toggle-like select {
         font-size: 12px;
         height: 22px;
         padding: 2px 10px;
@@ -115,4 +117,5 @@ canvas {
         background-size: 10px 10px;
     }
 }
+
 
