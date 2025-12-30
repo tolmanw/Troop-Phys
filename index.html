@@ -330,20 +330,25 @@ function updateDailyChart(alias, monthIndex){
         `Daily Distance - ${monthNames[monthIndex]}`;
 }
 
+// --- Updated renderDashboard ---
 function renderDashboard(){
     const container = document.getElementById("container");
     container.innerHTML = "";
 
-    const monthIndex = parseInt(document.getElementById("dailyMonthSelector").value);
-    const prevMonthIndex = monthIndex - 1 >= 0 ? monthIndex - 1 : 0;
+    // --- Fixed month indices for bottom charts ---
+    const lastMonthIndex = monthNames.length - 1;
+    const secondLastMonthIndex = lastMonthIndex - 1;
+
+    // Daily chart uses selected month
+    const selectedMonthIndex = parseInt(document.getElementById("dailyMonthSelector").value);
 
     Object.entries(athletesData).forEach(([alias, athlete])=>{
         const monthlyDistanceMi = athlete.monthly_distances.map(d=> +(d*0.621371).toFixed(2));
-        const monthlyTimeHours = athlete.monthly_time.map(t => +(t/60).toFixed(2)); // convert to hours
+        const monthlyTimeHours = athlete.monthly_time.map(t => +(t/60).toFixed(2));
 
         const EXTRA_GOAL_HOURS = +(EXTRA_GOAL/60).toFixed(2);
-        const extraMonths = [monthNames[prevMonthIndex], monthNames[monthIndex]];
-        const extraTimeHours = [monthlyTimeHours[prevMonthIndex] || 0, monthlyTimeHours[monthIndex] || 0];
+        const extraMonths = [monthNames[secondLastMonthIndex], monthNames[lastMonthIndex]];
+        const extraTimeHours = [monthlyTimeHours[secondLastMonthIndex] || 0, monthlyTimeHours[lastMonthIndex] || 0];
 
         const card = document.createElement("div");
         card.className = "card";
@@ -355,7 +360,7 @@ function renderDashboard(){
             </div>
 
             <div class="daily-chart-wrapper chart-tile">
-                <h3 style="font-size:${parseInt(getComputedStyle(document.documentElement).getPropertyValue('--title-size'))}px;">Daily Distance - ${monthNames[monthIndex]}</h3>
+                <h3 style="font-size:${parseInt(getComputedStyle(document.documentElement).getPropertyValue('--title-size'))}px;">Daily Distance - ${monthNames[selectedMonthIndex]}</h3>
                 <canvas id="dailyChart-${alias}"></canvas>
             </div>
 
@@ -383,10 +388,10 @@ function renderDashboard(){
 
         const barThickness = getBarThickness();
 
-        // Monthly Distance Chart
+        // --- Monthly Distance Chart ---
         CHARTS[`monthChart-${alias}`] = new Chart(document.getElementById(`monthChart-${alias}`), {
             type:"bar",
-            data:{ labels: extraMonths, datasets:[{ data: [monthlyDistanceMi[prevMonthIndex], monthlyDistanceMi[monthIndex]], backgroundColor:"rgba(42,102,186,0.6)", barThickness }] },
+            data:{ labels: extraMonths, datasets:[{ data: [monthlyDistanceMi[secondLastMonthIndex], monthlyDistanceMi[lastMonthIndex]], backgroundColor:"rgba(42,102,186,0.6)", barThickness }] },
             options:{
                 responsive:true,
                 maintainAspectRatio:false,
@@ -399,9 +404,9 @@ function renderDashboard(){
             }
         });
 
-        // Monthly Time Chart (hours)
+        // --- Monthly Time Chart ---
         const yMaxTime = Math.max(...extraTimeHours);
-        const suggestedMaxTime = Math.ceil(yMaxTime / 5) * 5; // round up to next multiple of 5
+        const suggestedMaxTime = Math.ceil(yMaxTime / 5) * 5;
         CHARTS[`monthTimeChart-${alias}`] = new Chart(document.getElementById(`monthTimeChart-${alias}`), {
             type:"bar",
             data:{ labels: extraMonths, datasets:[{ data: extraTimeHours, backgroundColor:"rgba(45,173,131,0.6)", barThickness }] },
@@ -452,7 +457,8 @@ function renderDashboard(){
             plugins:[goalLinePlugin]
         });
 
-        updateDailyChart(alias, monthIndex);
+        // --- Daily chart ---
+        updateDailyChart(alias, selectedMonthIndex);
     });
 }
 
