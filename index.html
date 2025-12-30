@@ -237,10 +237,14 @@ select, input[type=checkbox] {
 <p id="lastSynced" style="font-size:12px;opacity:0.7;">Loading last synced...</p>
 <img id="logo" src="logo.jpeg" alt="Logo">
 
-<select id="dailyMonthSelector"></select>
-<label>Daily Distance Month</label>
-    
+<!-- Daily Distance Month dropdown as pill-shaped toggle style -->
+<label class="toggle-like" style="display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
+    <select id="dailyMonthSelector"></select>
+    Daily Distance Month
+</label>
 <br>
+
+<!-- Show Monthly Challenge toggle -->
 <label class="toggle-switch">
     <input type="checkbox" id="challengeToggle">
     <span class="slider"></span>
