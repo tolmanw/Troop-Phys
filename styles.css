@@ -25,13 +25,15 @@ h1 {
   margin-top: 10px;
 }
 
-/* Generic selects except daily month selector */
-select:not(#dailyMonthSelector) {
+/* Generic selects including daily month selector */
+select {
   padding: 6px;
   background: #333;
   color: #fff;
   border: 1px solid #444;
   border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
 }
 
 /* Main container and sections */
@@ -135,76 +137,5 @@ canvas {
     height: 14px;
     top: 2px;
     left: 2px;
-  }
-}
-
-/* --- Toggle-like pill-style dropdown --- */
-.toggle-like {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  font-size: 14px;
-  margin-bottom: 8px;
-}
-
-/* Wrapper for pill styling */
-.select-wrapper {
-  position: relative;
-  display: inline-block;
-  height: 22px;             /* match toggle switch height */
-  border-radius: 22px;
-  background-color: #1b1f25;
-  border: 1px solid #555;
-  overflow: hidden;
-}
-
-/* Transparent select inside wrapper */
-.select-wrapper select {
-  appearance: none;
-  -webkit-appearance: none;
-  border: none;
-  background: transparent;
-  color: #e6edf3;
-  padding: 0 28px 0 12px;
-  height: 100%;
-  line-height: 22px;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-/* Arrow for dropdown */
-.select-wrapper::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  right: 8px;
-  transform: translateY(-50%);
-  width: 12px;
-  height: 12px;
-  background-image: url("data:image/svg+xml,%3Csvg fill='white' height='12' viewBox='0 0 24 24' width='12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
-  background-size: contain;
-  background-repeat: no-repeat;
-  pointer-events: none;
-}
-
-/* Focus state */
-.select-wrapper select:focus {
-  outline: none;
-  border-color: #2da44e;
-}
-
-/* Mobile adjustments */
-@media (max-width: 600px) {
-  .select-wrapper {
-    height: 18px;
-  }
-  .select-wrapper select {
-    line-height: 18px;
-    font-size: 12px;
-  }
-  .select-wrapper::after {
-    width: 10px;
-    height: 10px;
   }
 }
