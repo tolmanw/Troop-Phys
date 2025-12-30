@@ -76,3 +76,35 @@ canvas {
   max-width: 800px;         /* optional max width for large screens */
   display: block;            /* ensures proper layout */
 }
+
+/* Style the Daily Distance Month dropdown */
+#dailyMonthSelector {
+    appearance: none;          /* remove default arrow */
+    -webkit-appearance: none;
+    background-color: #1b1f25; /* match card color */
+    color: #e6edf3;            /* text color */
+    border: 1px solid #555;    /* subtle border */
+    border-radius: 22px;       /* pill shape like toggle */
+    padding: 4px 12px;         /* vertical/horizontal padding */
+    font-size: 14px;           /* same as toggle label */
+    cursor: pointer;
+    height: 28px;               /* match toggle height */
+    line-height: 1;
+}
+
+#dailyMonthSelector:focus {
+    outline: none;
+    border-color: #2da44e;     /* same green as toggle on */
+}
+
+#dailyMonthSelector::-ms-expand {   /* remove default arrow on IE/Edge */
+    display: none;
+}
+
+@media (max-width: 600px) {
+    #dailyMonthSelector {
+        font-size: 12px;
+        height: 22px;
+        padding: 2px 10px;
+    }
+}
