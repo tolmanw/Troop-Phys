@@ -117,7 +117,7 @@ select, input[type=checkbox] {
     border-radius: 50%;
     object-fit: cover;
 }
-    /* --- Toggle Switch --- */
+/* --- Toggle Switch --- */
 .toggle-switch {
     display: inline-flex;
     align-items: center;
@@ -160,7 +160,7 @@ select, input[type=checkbox] {
     transform: translateX(20px);
 }
 
-    /* Optional: mobile scaling */
+/* Optional: mobile scaling */
 @media (max-width: 600px) {
     .toggle-switch {
         font-size: 12px;
@@ -252,7 +252,6 @@ let athletesData;
 let monthNames;
 const CHARTS = {};
 
-// --- Dashboard functions ---
 function getBarThickness() {
     return window.innerWidth <= 600
         ? parseInt(getComputedStyle(document.documentElement).getPropertyValue('--bar-thickness'))
@@ -339,9 +338,13 @@ function renderDashboard(){
         const monthlyDistanceMi = athlete.monthly_distances.map(d=> +(d*0.621371).toFixed(2));
         const monthlyTime = athlete.monthly_time || [0,0];
 
-        const EXTRA_GOAL = 480;
+        const EXTRA_GOAL = 480; // in minutes
         const extraMonths = [monthNames[prevMonthIndex], monthNames[monthIndex]];
         const extraTime = [monthlyTime[prevMonthIndex] || 0, monthlyTime[monthIndex] || 0];
+
+        // --- convert minutes to hours ---
+        const extraTimeHours = extraTime.map(t => +(t/60).toFixed(1));
+        const monthlyTimeHours = [(monthlyTime[prevMonthIndex] || 0)/60, (monthlyTime[monthIndex] || 0)/60];
 
         const card = document.createElement("div");
         card.className = "card";
@@ -397,27 +400,35 @@ function renderDashboard(){
             }
         });
 
-        // Monthly Time Chart
+        // Monthly Time Chart in hours
         CHARTS[`monthTimeChart-${alias}`] = new Chart(document.getElementById(`monthTimeChart-${alias}`), {
             type:"bar",
-            data:{ labels: extraMonths, datasets:[{ data: [monthlyTime[prevMonthIndex] || 0, monthlyTime[monthIndex] || 0], backgroundColor:"rgba(45,173,131,0.6)", barThickness }] },
+            data:{ labels: extraMonths, datasets:[{ data: monthlyTimeHours, backgroundColor:"rgba(45,173,131,0.6)", barThickness }] },
             options:{
                 responsive:true,
                 maintainAspectRatio:false,
                 layout:{ padding:{ bottom:8 } },
                 plugins:{ legend:{ display:false } },
                 scales:{
-                    y:{ beginAtZero:true, suggestedMin:0, ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } },
+                    y:{ 
+                        beginAtZero:true, 
+                        suggestedMin:0,
+                        ticks:{
+                            font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) },
+                            callback: function(val){ return val + ' h'; }
+                        }
+                    },
                     x:{ ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } }
                 }
             }
         });
 
+        // Extra Phys Goal Chart with hours
         const goalLinePlugin = {
             id: 'goalLine',
             afterDatasetsDraw(chart) {
                 const { ctx, chartArea:{left,right,top,bottom}, scales:{y} } = chart;
-                const yPos = y.getPixelForValue(EXTRA_GOAL);
+                const yPos = y.getPixelForValue(EXTRA_GOAL / 60);
                 if (yPos >= top && yPos <= bottom) {
                     ctx.save();
                     ctx.beginPath();
@@ -434,14 +445,22 @@ function renderDashboard(){
 
         CHARTS[`extraChart-${alias}`] = new Chart(document.getElementById(`extraChart-${alias}`), {
             type:"bar",
-            data:{ labels: extraMonths, datasets:[{ data: extraTime, backgroundColor: extraTime.map(v => v >= EXTRA_GOAL ? "rgba(0,255,0,0.3)" : "rgba(255,0,0,0.3)"), barThickness }] },
+            data:{ labels: extraMonths, datasets:[{ data: extraTimeHours, backgroundColor: extraTimeHours.map(v => v*60 >= EXTRA_GOAL ? "rgba(0,255,0,0.3)" : "rgba(255,0,0,0.3)"), barThickness }] },
             options:{
                 responsive:true,
                 maintainAspectRatio:false,
                 layout:{ padding:{ bottom:8 } },
                 plugins:{ legend:{ display:false } },
                 scales:{
-                    y:{ beginAtZero:true, suggestedMin:0, max: Math.max(...extraTime, EXTRA_GOAL)+220, ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } },
+                    y:{ 
+                        beginAtZero:true, 
+                        suggestedMin:0,
+                        max: Math.max(...extraTime, EXTRA_GOAL)/60 + 3,
+                        ticks:{ 
+                            font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) },
+                            callback: function(val){ return val + ' h'; }
+                        } 
+                    },
                     x:{ ticks:{ font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) } } }
                 }
             },
@@ -452,7 +471,6 @@ function renderDashboard(){
     });
 }
 
-// Listen for month selector
 document.getElementById("dailyMonthSelector").addEventListener("change", ()=>{
     const monthIndex = parseInt(document.getElementById("dailyMonthSelector").value);
     Object.keys(athletesData).forEach(alias=>{
@@ -460,7 +478,6 @@ document.getElementById("dailyMonthSelector").addEventListener("change", ()=>{
     });
 });
 
-// --- Expose dashboard to challenge.js ---
 window.DASHBOARD = {
     renderDashboard,
     destroyCharts: () => {
@@ -469,7 +486,6 @@ window.DASHBOARD = {
     getData: () => ({ athletesData, monthNames })
 };
 
-// Load initial data
 loadData();
 </script>
 <script src="challenge.js"></script>
