@@ -77,37 +77,42 @@ canvas {
   display: block;            /* ensures proper layout */
 }
 
-/* Style the Daily Distance Month dropdown like the toggle switch */
 #dailyMonthSelector {
     appearance: none;          /* remove default arrow */
-    -webkit-appearance: none;  /* Safari/Chrome */
+    -webkit-appearance: none;
     background-color: #1b1f25; /* same as card background */
     color: #e6edf3;            /* text color */
     border: 1px solid #555;    /* subtle border */
     border-radius: 22px;       /* pill shape like toggle */
-    padding: 4px 12px;         /* vertical and horizontal padding */
-    font-size: 14px;           /* match toggle label size */
+    padding: 4px 12px;         /* padding inside pill */
+    font-size: 14px;           /* match toggle label */
     cursor: pointer;
     height: 28px;               /* same height as toggle */
     line-height: 1;
+    position: relative;
+    background-image: url("data:image/svg+xml,%3Csvg fill='white' height='12' viewBox='0 0 24 24' width='12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 12px 12px;
 }
 
-/* Optional focus style to match toggle active state */
 #dailyMonthSelector:focus {
     outline: none;
-    border-color: #2da44e;     /* same green as toggle on */
+    border-color: #2da44e;
 }
 
-/* Remove arrow in IE/Edge */
-#dailyMonthSelector::-ms-expand {
+#dailyMonthSelector::-ms-expand {   /* IE/Edge arrow */
     display: none;
 }
 
-/* Mobile scaling */
+/* Mobile */
 @media (max-width: 600px) {
     #dailyMonthSelector {
         font-size: 12px;
         height: 22px;
         padding: 2px 10px;
+        background-position: right 6px center;
+        background-size: 10px 10px;
     }
 }
+
