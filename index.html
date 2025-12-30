@@ -346,6 +346,8 @@ function renderDashboard(){
         const extraTimeHours = extraTime.map(t => +(t/60).toFixed(1));
         const monthlyTimeHours = [(monthlyTime[prevMonthIndex] || 0)/60, (monthlyTime[monthIndex] || 0)/60];
 
+        const maxTimeHours = Math.max(...monthlyTimeHours, ...extraTimeHours, EXTRA_GOAL/60) + 10;
+
         const card = document.createElement("div");
         card.className = "card";
 
@@ -400,7 +402,7 @@ function renderDashboard(){
             }
         });
 
-        // Monthly Time Chart in hours
+        // Monthly Time Chart in hours with +10h buffer
         CHARTS[`monthTimeChart-${alias}`] = new Chart(document.getElementById(`monthTimeChart-${alias}`), {
             type:"bar",
             data:{ labels: extraMonths, datasets:[{ data: monthlyTimeHours, backgroundColor:"rgba(45,173,131,0.6)", barThickness }] },
@@ -413,6 +415,7 @@ function renderDashboard(){
                     y:{ 
                         beginAtZero:true, 
                         suggestedMin:0,
+                        max: maxTimeHours,
                         ticks:{
                             font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) },
                             callback: function(val){ return val + ' h'; }
@@ -423,7 +426,7 @@ function renderDashboard(){
             }
         });
 
-        // Extra Phys Goal Chart with hours
+        // Extra Phys Goal Chart with hours and +10h buffer
         const goalLinePlugin = {
             id: 'goalLine',
             afterDatasetsDraw(chart) {
@@ -455,7 +458,7 @@ function renderDashboard(){
                     y:{ 
                         beginAtZero:true, 
                         suggestedMin:0,
-                        max: Math.max(...extraTime, EXTRA_GOAL)/60 + 3,
+                        max: maxTimeHours,
                         ticks:{ 
                             font:{ size: parseInt(getComputedStyle(document.documentElement).getPropertyValue('--font-size')) },
                             callback: function(val){ return val + ' h'; }
