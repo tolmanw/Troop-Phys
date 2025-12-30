@@ -155,11 +155,14 @@ for username, info in refresh_tokens.items():
 os.makedirs("data", exist_ok=True)
 with open("data/athletes.json", "w") as f:
     json.dump(
-        {"athletes": athletes_out, "month_names": month_names},
+        {
+            "athletes": athletes_out,
+            "month_names": month_names,
+            "last_synced": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+        },
         f,
         indent=2
     )
-
 print("athletes.json updated successfully.")
 print(f"Found athletes: {found_athletes}")
 print(f"Skipped athletes: {skipped_athletes}")
