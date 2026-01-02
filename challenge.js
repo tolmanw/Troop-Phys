@@ -53,15 +53,6 @@ function renderChallenge(athletesData, monthNames) {
     const rulesTitle = rulesCard.querySelector("h3");
     const rulesBody = rulesCard.querySelector(".challenge-rules");
 
-    // Add the point rules
-    rulesBody.innerHTML = `
-        <div style="display:flex;flex-direction:column;gap:6px;line-height:1.4;">
-            <div>🚴‍♂️ <strong>Bike</strong>: 1 mile = <strong>0.25 points</strong></div>
-            <div>🏃‍♂️ <strong>Run</strong>: 1 mile = <strong>1 point</strong></div>
-            <div>🏊‍♂️ <strong>Swim</strong>: 1 mile = <strong>4 points</strong></div>
-        </div>
-    `;
-
     const card = container.querySelector(".challenge-card:nth-of-type(2)");
     const canvas = document.getElementById("challengeChartCanvas");
     const ctx = canvas.getContext("2d");
@@ -95,6 +86,14 @@ function renderChallenge(athletesData, monthNames) {
     rulesTitle.style.fontSize = headerFontSize + "px";
     rulesTitle.style.color = "#e6edf3";
 
+    // --- Add rules text ---
+    rulesBody.innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:6px;line-height:1.4;">
+            <div>🚴‍♂️ <strong>Bike</strong>: 1 mile = <strong>0.25 points</strong></div>
+            <div>🏃‍♂️ <strong>Run</strong>: 1 mile = <strong>1 point</strong></div>
+            <div>🏊‍♂️ <strong>Swim</strong>: 1 mile = <strong>4 points</strong></div>
+        </div>
+    `;
     rulesBody.style.minHeight = "40px";
     rulesBody.style.fontSize = fontSize + "px";
     rulesBody.style.color = "#e6edf3";
@@ -168,7 +167,7 @@ function renderChallenge(athletesData, monthNames) {
     const maxDistanceMi =
         Math.ceil(Math.max(...datasets.flatMap(d => d.data))) + 1;
 
-    // --- Summary content (athlete totals) ---
+    // --- Athlete totals ---
     const totals = datasets
         .map(d => ({
             label: d.label,
@@ -273,18 +272,18 @@ function renderChallenge(athletesData, monthNames) {
 // --- Toggle logic ---
 function initChallengeToggle() {
     const toggle = document.getElementById("challengeToggle");
+    const monthSelector = document.getElementById("dailyMonthSelector");
+    const monthLabel = document.querySelector(".month-label"); // <-- ensure label has this class
 
     toggle.addEventListener("change", () => {
         const container = document.getElementById("container");
         const challengeContainer = document.getElementById("challengeContainer");
-        const monthSelector = document.getElementById("dailyMonthSelector");
-        const monthLabel = monthSelector?.previousElementSibling;
 
         const on = toggle.checked;
         container.style.display = on ? "none" : "flex";
         challengeContainer.style.display = on ? "block" : "none";
 
-        // Hide month label and selector but keep layout
+        // Hide/show but preserve space
         if (monthSelector) monthSelector.style.visibility = on ? "hidden" : "visible";
         if (monthLabel) monthLabel.style.visibility = on ? "hidden" : "visible";
 
