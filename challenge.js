@@ -53,20 +53,6 @@ function renderChallenge(athletesData, monthNames) {
     const rulesTitle = rulesCard.querySelector("h3");
     const rulesBody = rulesCard.querySelector(".challenge-rules");
 
-    // ✅ ADD RULES TEXT (requested)
-    rulesBody.innerHTML = `
-        <div style="
-            display:flex;
-            flex-direction:column;
-            gap:6px;
-            line-height:1.4;
-        ">
-            <div>🚴‍♂️ <strong>Bike</strong>: 1 mile = <strong>0.25 points</strong></div>
-            <div>🏃‍♂️ <strong>Run</strong>: 1 mile = <strong>1 point</strong></div>
-            <div>🏊‍♂️ <strong>Swim</strong>: 1 mile = <strong>4 points</strong></div>
-        </div>
-    `;
-
     const card = container.querySelector(".challenge-card:nth-of-type(2)");
     const canvas = document.getElementById("challengeChartCanvas");
     const ctx = canvas.getContext("2d");
@@ -88,11 +74,14 @@ function renderChallenge(athletesData, monthNames) {
         headerFontSize
     } = getSettings();
 
-    // --- Rules card styling ---
+    // --- Rules card styling (MATCHES summary card) ---
     rulesCard.style.width = cardWidth;
     rulesCard.style.margin = "0 0 12px 0";
     rulesCard.style.boxSizing = "border-box";
-    rulesCard.style.padding = `${isMobile ? 10 : 12}px ${chartPadding}px`;
+    rulesCard.style.padding = `
+        ${isMobile ? 10 : 12}px
+        ${chartPadding}px
+    `;
     rulesCard.style.background = "#1b1f25";
     rulesCard.style.borderRadius = "15px";
 
@@ -100,6 +89,7 @@ function renderChallenge(athletesData, monthNames) {
     rulesTitle.style.fontSize = headerFontSize + "px";
     rulesTitle.style.color = "#e6edf3";
 
+    rulesBody.style.minHeight = "40px";
     rulesBody.style.fontSize = fontSize + "px";
     rulesBody.style.color = "#e6edf3";
     rulesBody.style.opacity = "0.85";
@@ -130,7 +120,10 @@ function renderChallenge(athletesData, monthNames) {
     summaryCard.style.width = cardWidth;
     summaryCard.style.margin = "12px 0 0 0";
     summaryCard.style.boxSizing = "border-box";
-    summaryCard.style.padding = `${isMobile ? 10 : 12}px ${chartPadding}px`;
+    summaryCard.style.padding = `
+        ${isMobile ? 10 : 12}px
+        ${chartPadding}px
+    `;
     summaryCard.style.background = "#1b1f25";
     summaryCard.style.borderRadius = "15px";
 
@@ -167,9 +160,46 @@ function renderChallenge(athletesData, monthNames) {
         };
     });
 
+    if (!datasets.some(d => d.data.length)) {
+        canvas.remove();
+        container.innerHTML += "<p style='color:#e6edf3'>No challenge data.</p>";
+        return;
+    }
+
     const labels = datasets[0].data.map((_, i) => i + 1);
     const maxDistanceMi =
         Math.ceil(Math.max(...datasets.flatMap(d => d.data))) + 1;
+
+    // --- Summary content ---
+    const totals = datasets
+        .map(d => ({
+            label: d.label,
+            color: d.borderColor,
+            total: d.data.at(-1) || 0
+        }))
+        .sort((a, b) => b.total - a.total);
+
+    const avatarSize = isMobile ? 16 : 20;
+
+    summary.innerHTML = totals.map(t => {
+        const athlete = Object.values(athletesData)
+            .find(a => a.display_name === t.label);
+
+        return `
+            <div style="
+                display:flex;
+                align-items:center;
+                gap:6px;
+                margin-bottom:4px;
+                white-space:nowrap;
+            ">
+                <img src="${athlete?.profile || ""}"
+                     style="width:${avatarSize}px;height:${avatarSize}px;border-radius:50%;object-fit:cover;">
+                <span style="color:${t.color}">${t.label}</span>
+                <span style="opacity:0.7">${t.total.toFixed(1)} mi</span>
+            </div>
+        `;
+    }).join("");
 
     // --- Chart ---
     challengeChart = new Chart(ctx, {
@@ -209,7 +239,36 @@ function renderChallenge(athletesData, monthNames) {
                     ticks: { font: { size: fontSize } }
                 }
             }
-        }
+        },
+        plugins: [{
+            id: "athleteImages",
+            afterDatasetsDraw(chart) {
+                const { ctx, scales: { x, y } } = chart;
+
+                Object.values(athletesData).forEach((a, i) => {
+                    const d = chart.data.datasets[i];
+                    if (!d?.data.length) return;
+
+                    const idx = d.data.length - 1;
+                    let xPos = x.getPixelForValue(idx + 1);
+                    let yPos = y.getPixelForValue(d.data[idx]);
+
+                    const size = athleteImgSize;
+                    xPos = Math.min(xPos, chart.width - size / 2 - paddingRight);
+
+                    const img = new Image();
+                    img.src = a.profile;
+                    img.onload = () => {
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.arc(xPos, yPos, size / 2, 0, Math.PI * 2);
+                        ctx.clip();
+                        ctx.drawImage(img, xPos - size / 2, yPos - size / 2, size, size);
+                        ctx.restore();
+                    };
+                });
+            }
+        }]
     });
 }
 
@@ -221,16 +280,14 @@ function initChallengeToggle() {
         const container = document.getElementById("container");
         const challengeContainer = document.getElementById("challengeContainer");
         const monthSelector = document.getElementById("dailyMonthSelector");
-        const monthLabel = monthSelector?.closest("label"); // ✅ FIXED
+        const monthLabel = monthSelector?.previousElementSibling;
 
         const on = toggle.checked;
-
         container.style.display = on ? "none" : "flex";
         challengeContainer.style.display = on ? "block" : "none";
 
-        if (monthLabel) {
-            monthLabel.style.display = on ? "none" : "inline-flex";
-        }
+        if (monthSelector) monthSelector.style.visibility = on ? "hidden" : "visible";
+        if (monthLabel) monthLabel.style.visibility = on ? "hidden" : "visible";
 
         const { athletesData, monthNames } = window.DASHBOARD.getData();
 
