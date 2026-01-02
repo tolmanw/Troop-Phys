@@ -222,7 +222,9 @@ function renderChallenge(athletesData, monthNames) {
                 x: {
                     ticks: {
                         font: { size: fontSize },
-                        padding: isMobile ? 10 : 6
+                        padding: isMobile ? 10 : 6,
+                        maxRotation: 0,
+                        minRotation: 0
                     }
                 },
                 y: {
