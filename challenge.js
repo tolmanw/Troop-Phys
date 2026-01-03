@@ -89,9 +89,10 @@ function renderChallenge(athletesData, monthNames) {
     // --- Add rules text ---
     rulesBody.innerHTML = `
         <div style="display:flex;flex-direction:column;gap:6px;line-height:1.4;">
-            <div>🚴‍♂️ <strong>Bike</strong>: 1 mile = <strong>0.25 points</strong></div>
-            <div>🏃‍♂️ <strong>Run</strong>: 1 mile = <strong>1 point</strong></div>
             <div>🏊‍♂️ <strong>Swim</strong>: 1 mile = <strong>4 points</strong></div>
+            <div>🏃‍♂️ <strong>Run</strong>: 1 mile = <strong>1 point</strong></div>
+            <div>🚴‍♂️ <strong>Bike</strong>: 1 mile = <strong>0.25 points</strong></div>
+            <div>🏋️ <strong>Weights</strong>: 10 mins = <strong>1 point</strong></div>
         </div>
     `;
     rulesBody.style.minHeight = "40px";
