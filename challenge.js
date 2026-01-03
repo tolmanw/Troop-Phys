@@ -25,8 +25,7 @@ function destroyChallenge() {
         challengeChart.destroy();
         challengeChart = null;
     }
-    const container = document.getElementById("challengeContainer");
-    container.innerHTML = "";
+    document.getElementById("challengeContainer").innerHTML = "";
 }
 
 function renderChallenge(athletesData, monthNames) {
@@ -140,7 +139,7 @@ function renderChallenge(athletesData, monthNames) {
         Swim: 4,
         Run: 1,
         Bike: 0.25,
-        Weights: 0.1
+        Weights: 0.1 // 10 mins = 1 point -> 1/10 = 0.1 per min
     };
 
     const datasets = Object.values(athletesData).map(a => {
@@ -154,7 +153,7 @@ function renderChallenge(athletesData, monthNames) {
 
         const dailyPoints = daily.map(d => {
             let dayPoints = 0;
-            if (d.activities && d.activities.length) {
+            if (d.activities.length) {
                 d.activities.forEach(act => {
                     const actLower = act.toLowerCase();
                     if (actLower.includes("swim")) dayPoints += (d.distance_km || 0) * pointsPerActivity.Swim;
@@ -177,14 +176,19 @@ function renderChallenge(athletesData, monthNames) {
         };
     });
 
-    const hasData = datasets.some(d => d.data.length && d.data.some(v => v > 0));
-
-    if (!hasData) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        summary.innerHTML = "<p style='color:#e6edf3'>No challenge data.</p>";
+    if (!datasets.some(d => d.data.length)) {
+        canvas.remove();
+        container.innerHTML += "<p style='color:#e6edf3'>No challenge data.</p>";
+        return;
     }
 
-    const labels = datasets[0]?.data.map((_, i) => i + 1) || [];
+    // --- Generate x-axis labels ---
+    let totalDays = 0;
+    Object.values(athletesData).forEach(a => {
+        if (a.daily && a.daily.length > totalDays) totalDays = a.daily.length;
+    });
+    const labels = Array.from({ length: totalDays }, (_, i) => i + 1);
+
     const maxPoints = Math.ceil(Math.max(...datasets.flatMap(d => d.data))) + 1;
 
     // --- Athlete totals ---
@@ -195,9 +199,17 @@ function renderChallenge(athletesData, monthNames) {
     const avatarSize = isMobile ? 16 : 20;
 
     summary.innerHTML = totals.map(t => {
-        const athlete = Object.values(athletesData).find(a => a.display_name === t.label);
+        const athlete = Object.values(athletesData)
+            .find(a => a.display_name === t.label);
+
         return `
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;white-space:nowrap;">
+            <div style="
+                display:flex;
+                align-items:center;
+                gap:6px;
+                margin-bottom:4px;
+                white-space:nowrap;
+            ">
                 <img src="${athlete?.profile || ""}"
                      style="width:${avatarSize}px;height:${avatarSize}px;border-radius:50%;object-fit:cover;">
                 <span style="color:${t.color}">${t.label}</span>
@@ -216,11 +228,30 @@ function renderChallenge(athletesData, monthNames) {
             layout: { padding: { bottom: chartPaddingBottom, right: paddingRight } },
             plugins: {
                 legend: { display: false },
-                tooltip: { bodyFont: { size: fontSize }, titleFont: { size: fontSize } }
+                tooltip: {
+                    bodyFont: { size: fontSize },
+                    titleFont: { size: fontSize }
+                }
             },
             scales: {
-                x: { ticks: { font: { size: fontSize }, padding: isMobile ? 10 : 6, maxRotation: 0, minRotation: 0 } },
-                y: { min: 0, max: maxPoints, title: { display: true, text: "Cumulative Points", font: { size: fontSize } }, ticks: { font: { size: fontSize } } }
+                x: {
+                    ticks: {
+                        font: { size: fontSize },
+                        padding: isMobile ? 10 : 6,
+                        maxRotation: 0,
+                        minRotation: 0,
+                        callback: function(val, index) {
+                            // Show every other day
+                            return index % 2 === 0 ? this.getLabelForValue(val) : '';
+                        }
+                    }
+                },
+                y: {
+                    min: 0,
+                    max: maxPoints,
+                    title: { display: true, text: "Cumulative Points", font: { size: fontSize } },
+                    ticks: { font: { size: fontSize } }
+                }
             }
         },
         plugins: [{
