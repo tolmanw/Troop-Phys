@@ -13,6 +13,7 @@ refresh_tokens = json.loads(REFRESH_TOKENS_JSON)
 USERNAME_ALIASES = json.loads(ALIASES_JSON)
 USERNAME_ALIASES_NORMALIZED = {k.strip().lower(): v for k, v in USERNAME_ALIASES.items()}
 
+# --- Activity types ---
 activity_types = [
     "Run", "Trail Run", "Walk", "Hike", "Virtual Run",
     "Ride", "Mountain Bike Ride", "Gravel Ride", "E-Bike Ride", "E-Mountain Bike Ride",
@@ -24,6 +25,9 @@ activity_types = [
     "Weight Training", "Yoga", "Workout", "HIIT", "Pilates", "Table Tennis", "Squash", "Racquetball",
     "Virtual Rowing"
 ]
+
+# --- Challenge activity types ---
+CHALLENGE_ACTIVITY_TYPES = ["Run", "Ride", "Swim"]
 
 # --- Functions ---
 def refresh_access_token(refresh_token):
@@ -57,13 +61,20 @@ def get_last_three_month_starts():
 
 def fetch_activities(access_token, after_ts):
     url = "https://www.strava.com/api/v3/athlete/activities"
-    params = {"after": after_ts, "per_page": 200}
-    headers = {"Authorization": f"Bearer {access_token}"}
-    response = requests.get(url, headers=headers, params=params)
-    if response.status_code != 200:
-        print("Error fetching activities:", response.status_code, response.text)
-        return []
-    activities = response.json()
+    activities = []
+    page = 1
+    while True:
+        params = {"after": after_ts, "per_page": 200, "page": page}
+        headers = {"Authorization": f"Bearer {access_token}"}
+        response = requests.get(url, headers=headers, params=params)
+        if response.status_code != 200:
+            print(f"Error fetching activities (page {page}):", response.status_code, response.text)
+            break
+        page_activities = response.json()
+        if not page_activities:
+            break
+        activities.extend(page_activities)
+        page += 1
     return activities if isinstance(activities, list) else []
 
 def days_in_month(dt):
@@ -93,6 +104,9 @@ athletes_out = {}
 found_athletes = []
 skipped_athletes = []
 
+# --- Challenge JSON output ---
+challenge_out = {}
+
 # --- Main loop ---
 for username, info in refresh_tokens.items():
     print(f"Processing athlete '{username}'")
@@ -112,6 +126,7 @@ for username, info in refresh_tokens.items():
         skipped_athletes.append(username)
         continue
 
+    # --- Prepare monthly/daily aggregation for athletes.json ---
     monthly_distance = [0.0] * 3
     monthly_time_min = [0.0] * 3
     daily_distance = [[0.0] * days_in_month(m) for m in month_starts]
@@ -160,7 +175,22 @@ for username, info in refresh_tokens.items():
 
     found_athletes.append(alias)
 
-# --- Save JSON ---
+    # --- Prepare challenge_1.json ---
+    challenge_activities = [a for a in activities if a.get("type") in CHALLENGE_ACTIVITY_TYPES]
+    challenge_out[alias] = []
+    for act in challenge_activities:
+        dt = datetime.strptime(act["start_date_local"], "%Y-%m-%dT%H:%M:%S%z")
+        dist_km = act.get("distance", 0) / 1000
+        time_min = act.get("moving_time", 0) / 60
+        challenge_out[alias].append({
+            "date": dt.strftime("%Y-%m-%d"),
+            "type": act.get("type"),
+            "name": act.get("name"),
+            "distance_km": round(dist_km, 2),
+            "duration_min": round(time_min, 1)
+        })
+
+# --- Save athletes.json ---
 os.makedirs("data", exist_ok=True)
 with open("data/athletes.json", "w") as f:
     json.dump(
@@ -174,5 +204,18 @@ with open("data/athletes.json", "w") as f:
     )
 
 print("athletes.json updated successfully.")
+
+# --- Save challenge_1.json ---
+with open("data/challenge_1.json", "w") as f:
+    json.dump(
+        {
+            "athletes": challenge_out,
+            "last_synced": uk_now().strftime("%d-%m-%Y %H:%M")
+        },
+        f,
+        indent=2
+    )
+
+print("challenge_1.json updated successfully.")
 print(f"Found athletes: {found_athletes}")
 print(f"Skipped athletes: {skipped_athletes}")
