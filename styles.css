@@ -102,6 +102,13 @@ canvas {
   transform: translateX(20px);
 }
 
+.controls-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+
 /* =========================================================
    Mobile adjustments (≤ 600px)
    ========================================================= */
@@ -123,3 +130,5 @@ canvas {
     top: 2px;
   }
 }
+
+
