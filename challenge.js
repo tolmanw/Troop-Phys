@@ -265,9 +265,9 @@ function initChallengeToggle() {
         if (container) container.style.display = on ? "none" : "flex";
         if (challengeContainer) challengeContainer.style.display = on ? "block" : "none";
 
-        // Month selector & label visibility
-        if (monthSelector) monthSelector.style.display = on ? "none" : "inline-block";
-        if (monthLabel) monthLabel.style.display = on ? "none" : "inline-block";
+        // Month selector & label visibility (keep layout space)
+        if (monthSelector) monthSelector.style.visibility = on ? "hidden" : "visible";
+        if (monthLabel) monthLabel.style.visibility = on ? "hidden" : "visible";
 
         const { athletesData, monthNames } = window.DASHBOARD.getData();
         if (on) {
