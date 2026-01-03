@@ -6,9 +6,16 @@
       "daily": [
         {
           "date": "2026-01-01",
-          "distance_km": 0.0,
-          "time_min": 0.0,
-          "activities": []
+          "distance_km": 14.4841,
+          "time_min": 60.0,
+          "activities": [
+            {
+              "name": "Afternoon Run",
+              "type": "Run",
+              "distance_km": 14.48,
+              "time_min": 60.0
+            }
+          ]
         },
         {
           "date": "2026-01-02",
@@ -393,5 +400,5 @@
     }
   },
   "month": "January 2026",
-  "last_synced": "03-01-2026 22:18"
+  "last_synced": "03-01-2026 22:20"
 }
