@@ -25,7 +25,8 @@ function destroyChallenge() {
         challengeChart.destroy();
         challengeChart = null;
     }
-    document.getElementById("challengeContainer").innerHTML = "";
+    const container = document.getElementById("challengeContainer");
+    if (container) container.innerHTML = "";
 }
 
 function renderChallenge(athletesData, monthNames) {
@@ -86,7 +87,6 @@ function renderChallenge(athletesData, monthNames) {
     rulesTitle.style.fontSize = headerFontSize + "px";
     rulesTitle.style.color = "#e6edf3";
 
-    // --- Add rules text ---
     rulesBody.innerHTML = `
         <div style="display:flex;flex-direction:column;gap:6px;line-height:1.4;">
             <div>🏊‍♂️ <strong>Swim</strong>: 1 mile = <strong>4 points</strong></div>
@@ -135,21 +135,20 @@ function renderChallenge(athletesData, monthNames) {
     summary.style.fontSize = fontSize + "px";
     summary.style.color = "#e6edf3";
 
-    // --- Chart logic (updated for points) ---
+    // --- Chart logic ---
     const pointsPerActivity = {
-        "Swim": 4,       // 1 mile = 4 points
-        "Run": 1,        // 1 mile = 1 point
-        "Bike": 0.25,    // 1 mile = 0.25 points
-        "Weights": 0.1   // 10 min = 1 point -> 1 min = 0.1 point
+        "Swim": 4,
+        "Run": 1,
+        "Bike": 0.25,
+        "Weights": 0.1
     };
 
     const datasets = Object.values(athletesData).map(a => {
-        const daily = a.daily || []; // array of daily activities
+        const daily = a.daily || [];
         let cumulative = 0;
 
         if (!athleteColors[a.display_name]) {
-            athleteColors[a.display_name] =
-                `hsl(${Math.floor(Math.random() * 360)}, 100%, 50%)`;
+            athleteColors[a.display_name] = `hsl(${Math.floor(Math.random() * 360)}, 100%, 50%)`;
         }
 
         const data = daily.map(dayActs => {
@@ -188,18 +187,12 @@ function renderChallenge(athletesData, monthNames) {
     const maxPoints = Math.ceil(Math.max(...datasets.flatMap(d => d.data))) + 1;
 
     const totals = datasets
-        .map(d => ({
-            label: d.label,
-            color: d.borderColor,
-            total: d.data.at(-1) || 0
-        }))
+        .map(d => ({ label: d.label, color: d.borderColor, total: d.data.at(-1) || 0 }))
         .sort((a, b) => b.total - a.total);
 
     const avatarSize = isMobile ? 16 : 20;
     summary.innerHTML = totals.map(t => {
-        const athlete = Object.values(athletesData)
-            .find(a => a.display_name === t.label);
-
+        const athlete = Object.values(athletesData).find(a => a.display_name === t.label);
         return `
             <div style="
                 display:flex;
@@ -222,63 +215,20 @@ function renderChallenge(athletesData, monthNames) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            layout: {
-                padding: { bottom: chartPaddingBottom, right: paddingRight }
-            },
+            layout: { padding: { bottom: chartPaddingBottom, right: paddingRight } },
             plugins: {
                 legend: { display: false },
                 tooltip: {
-                    callbacks: {
-                        label: ctx => `${ctx.dataset.label}: ${ctx.raw} pts`
-                    },
+                    callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw} pts` },
                     bodyFont: { size: fontSize },
                     titleFont: { size: fontSize }
                 }
             },
             scales: {
-                x: {
-                    ticks: { font: { size: fontSize }, padding: isMobile ? 10 : 6, maxRotation: 0, minRotation: 0 }
-                },
-                y: {
-                    min: 0,
-                    max: maxPoints,
-                    title: {
-                        display: true,
-                        text: "Cumulative Points",
-                        font: { size: fontSize }
-                    },
-                    ticks: { font: { size: fontSize } }
-                }
+                x: { ticks: { font: { size: fontSize }, padding: isMobile ? 10 : 6, maxRotation: 0, minRotation: 0 } },
+                y: { min: 0, max: maxPoints, title: { display: true, text: "Cumulative Points", font: { size: fontSize } }, ticks: { font: { size: fontSize } } }
             }
-        },
-        plugins: [{
-            id: "athleteImages",
-            afterDatasetsDraw(chart) {
-                const { ctx, scales: { x, y } } = chart;
-                Object.values(athletesData).forEach((a, i) => {
-                    const d = chart.data.datasets[i];
-                    if (!d?.data.length) return;
-
-                    const idx = d.data.length - 1;
-                    let xPos = x.getPixelForValue(idx + 1);
-                    let yPos = y.getPixelForValue(d.data[idx]);
-
-                    const size = athleteImgSize;
-                    xPos = Math.min(xPos, chart.width - size / 2 - paddingRight);
-
-                    const img = new Image();
-                    img.src = a.profile;
-                    img.onload = () => {
-                        ctx.save();
-                        ctx.beginPath();
-                        ctx.arc(xPos, yPos, size / 2, 0, Math.PI * 2);
-                        ctx.clip();
-                        ctx.drawImage(img, xPos - size / 2, yPos - size / 2, size, size);
-                        ctx.restore();
-                    };
-                });
-            }
-        }]
+        }
     });
 }
 
@@ -286,22 +236,22 @@ function renderChallenge(athletesData, monthNames) {
 function initChallengeToggle() {
     const toggle = document.getElementById("challengeToggle");
     const monthSelector = document.getElementById("dailyMonthSelector");
-    const monthLabel = document.querySelector(".month-label"); // <-- ensure label has this class
+    const monthLabel = document.querySelector(".month-label"); // ensure label has this class
 
     toggle.addEventListener("change", () => {
         const container = document.getElementById("container");
         const challengeContainer = document.getElementById("challengeContainer");
-
         const on = toggle.checked;
-        container.style.display = on ? "none" : "flex";
-        challengeContainer.style.display = on ? "block" : "none";
 
-        // Hide/show but preserve space
-        if (monthSelector) monthSelector.style.visibility = on ? "hidden" : "visible";
-        if (monthLabel) monthLabel.style.visibility = on ? "hidden" : "visible";
+        // Hide/show dashboard and challenge
+        if (container) container.style.display = on ? "none" : "flex";
+        if (challengeContainer) challengeContainer.style.display = on ? "block" : "none";
+
+        // Hide/show month selector and label completely
+        if (monthSelector) monthSelector.style.display = on ? "none" : "inline-block";
+        if (monthLabel) monthLabel.style.display = on ? "none" : "inline-block";
 
         const { athletesData, monthNames } = window.DASHBOARD.getData();
-
         if (on) {
             window.DASHBOARD.destroyCharts();
             renderChallenge(athletesData, monthNames);
