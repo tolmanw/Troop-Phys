@@ -25,8 +25,7 @@ function destroyChallenge() {
         challengeChart.destroy();
         challengeChart = null;
     }
-    const container = document.getElementById("challengeContainer");
-    if (container) container.innerHTML = "";
+    document.getElementById("challengeContainer").innerHTML = "";
 }
 
 function renderChallenge(athletesData, monthNames) {
@@ -140,10 +139,10 @@ function renderChallenge(athletesData, monthNames) {
         Swim: 4,
         Run: 1,
         Ride: 0.25,
-        "Weight Training": 0.1 // 10 mins = 1 point
+        "Weight Training": 0.1
     };
 
-    const currentMonthIndex = monthNames.length - 1;
+    const dailyLength = Math.max(...Object.values(athletesData).map(a => a.daily.length));
 
     const datasets = Object.values(athletesData).map(a => {
         const daily = a.daily || [];
@@ -158,18 +157,20 @@ function renderChallenge(athletesData, monthNames) {
             let dayPoints = 0;
             if (d.activities.length) {
                 d.activities.forEach(act => {
-                    const type = act.type;
-                    if (pointsPerActivity[type]) {
-                        if (type === "Weight Training") {
-                            dayPoints += (d.time_min || 0) * pointsPerActivity[type];
-                        } else {
-                            dayPoints += (d.distance_km || 0) * pointsPerActivity[type];
-                        }
+                    const type = act.type || "";
+                    switch(type) {
+                        case "Swim": dayPoints += (act.distance_km || 0) * pointsPerActivity.Swim; break;
+                        case "Run": dayPoints += (act.distance_km || 0) * pointsPerActivity.Run; break;
+                        case "Ride": dayPoints += (act.distance_km || 0) * pointsPerActivity.Ride; break;
+                        case "Weight Training": dayPoints += (act.time_min || 0) * pointsPerActivity["Weight Training"]; break;
                     }
                 });
             }
             return +(cumulative += dayPoints).toFixed(2);
         });
+
+        // Fill missing days with last cumulative value
+        while(dailyPoints.length < dailyLength) dailyPoints.push(cumulative);
 
         return {
             label: a.display_name,
@@ -182,19 +183,26 @@ function renderChallenge(athletesData, monthNames) {
         };
     });
 
-    // --- Always render chart even if no points ---
-    const labels = datasets[0]?.data.map((_, i) => i + 1) || Array(31).fill(0).map((_, i) => i + 1);
-    const maxPoints = Math.ceil(Math.max(...datasets.flatMap(d => d.data), 10));
+    // --- Labels: every day of month ---
+    const labels = Array.from({length: dailyLength}, (_, i) => i + 1);
+
+    const maxPoints = Math.ceil(Math.max(...datasets.flatMap(d => d.data))) + 1;
 
     // --- Athlete totals ---
     const totals = datasets
-        .map(d => ({ label: d.label, color: d.borderColor, total: d.data.at(-1) || 0 }))
+        .map(d => ({
+            label: d.label,
+            color: d.borderColor,
+            total: d.data.at(-1) || 0
+        }))
         .sort((a, b) => b.total - a.total);
 
     const avatarSize = isMobile ? 16 : 20;
 
     summary.innerHTML = totals.map(t => {
-        const athlete = Object.values(athletesData).find(a => a.display_name === t.label);
+        const athlete = Object.values(athletesData)
+            .find(a => a.display_name === t.label);
+
         return `
             <div style="
                 display:flex;
@@ -221,16 +229,21 @@ function renderChallenge(athletesData, monthNames) {
             layout: { padding: { bottom: chartPaddingBottom, right: paddingRight } },
             plugins: {
                 legend: { display: false },
-                tooltip: { bodyFont: { size: fontSize }, titleFont: { size: fontSize } }
+                tooltip: {
+                    bodyFont: { size: fontSize },
+                    titleFont: { size: fontSize }
+                }
             },
             scales: {
                 x: {
                     ticks: {
                         font: { size: fontSize },
+                        padding: isMobile ? 10 : 6,
                         maxRotation: 0,
                         minRotation: 0,
-                        callback: function(val, index) {
-                            return (index % 2 === 0) ? this.getLabelForValue(val) : "";
+                        callback: function(value, index) {
+                            // Show every other day
+                            return (index % 2 === 0) ? this.getLabelForValue(value) : "";
                         }
                     }
                 },
