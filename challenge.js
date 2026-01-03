@@ -155,8 +155,9 @@ function renderChallenge(athletesData, monthNames) {
                 `hsl(${Math.floor(Math.random() * 360)}, 100%, 50%)`;
         }
 
+        // --- Fixed cumulative points calculation ---
         const dailyPoints = daily.map((d, i) => {
-            if (i >= currentDay) return null; // stop plotting beyond today
+            if (i + 1 > currentDay) return null; // stop plotting beyond today
             let dayPoints = 0;
             d.activities.forEach(act => {
                 const miles = (act.distance_km || 0) * 0.621371; // km -> miles
@@ -169,7 +170,7 @@ function renderChallenge(athletesData, monthNames) {
                     }
                 }
             });
-            return +(cumulative += dayPoints).toFixed(2);
+            return +(cumulative + dayPoints).toFixed(2); // always update cumulative
         });
 
         return {
@@ -256,8 +257,6 @@ function renderChallenge(athletesData, monthNames) {
                 Object.values(athletesData).forEach((a, i) => {
                     const d = chart.data.datasets[i];
                     if (!d?.data.length) return;
-                    // Find last non-null value
-                    const idx = d.data.findIndex((v, idx) => idx >= currentDay ? true : v === null) - 1;
                     const lastIdx = d.data.map((v, idx) => idx < currentDay ? idx : -1).filter(v => v >= 0).pop();
                     if (lastIdx === undefined) return;
                     const xPos = x.getPixelForValue(lastIdx + 1);
