@@ -2,54 +2,48 @@
    Controls Stack (Dashboard Top Controls)
    ========================================================= */
 
+/* Stack controls vertically */
 .controls-stack {
     display: flex;
-    flex-direction: column; /* stack each control vertically */
+    flex-direction: column; /* vertical stacking */
     align-items: flex-start;
     gap: 6px; /* vertical space between controls */
 }
 
+/* Each control item: select + text or toggle */
 .control-item {
     display: flex;
-    width: 100%; /* full width for stacking */
-}
-
-/* Label alignment: horizontal inside label */
-.controls-stack label {
-    display: flex;
     align-items: center;
-    gap: 6px;   /* spacing between child elements (select/text or toggle/text) */
 }
 
-/* Daily Distance Month: only move the text to the right */
-.controls-stack .month-label {
-    margin-left: 12px; /* adjusts only the text, not the select */
-    line-height: 1;
+/* Daily Distance text wrapper: moves only the text */
+.month-label-wrapper {
+    margin-left: 12px; /* adjust to move text right */
     display: inline-block;
 }
 
 /* Toggle label styling */
-.controls-stack .toggle-label {
-    margin-left: 0; /* no extra offset */
+.toggle-label {
     line-height: 1;
     display: inline-block;
+    margin-left: 6px; /* space between slider and text */
 }
 
-/* Adjust select to baseline alignment */
+/* Select baseline alignment */
 select {
     vertical-align: middle;
     padding: 6px;
 }
 
 /* =========================================================
-   Toggle Switch (Dashboard / Challenge Mode)
+   Toggle Switch
    ========================================================= */
 
 /* Toggle container */
 .toggle-switch {
     display: inline-flex;
     align-items: center;
-    gap: 10px; /* space between slider and text */
+    gap: 6px; /* space between slider and text */
     cursor: pointer;
     font-size: 14px;
 }
@@ -96,29 +90,26 @@ select {
    ========================================================= */
 @media (max-width: 600px) {
 
-  /* Slightly smaller toggle on mobile */
-  .toggle-switch {
-    font-size: 12px;
-  }
+    select {
+        font-size: 12px;
+    }
 
-  .toggle-switch .slider {
-    width: 36px;
-    height: 18px;
-  }
+    .month-label-wrapper {
+        margin-left: 8px; /* smaller indent on mobile */
+    }
 
-  .toggle-switch .slider::before {
-    width: 14px;
-    height: 14px;
-    top: 2px;
-  }
+    .toggle-switch {
+        font-size: 12px;
+    }
 
-  /* Smaller font for selects */
-  select {
-    font-size: 12px;
-  }
+    .toggle-switch .slider {
+        width: 36px;
+        height: 18px;
+    }
 
-  /* Maintain Daily Distance Month text offset */
-  .controls-stack .month-label {
-    margin-left: 8px; /* slightly smaller on mobile */
-  }
+    .toggle-switch .slider::before {
+        width: 14px;
+        height: 14px;
+        top: 2px;
+    }
 }
