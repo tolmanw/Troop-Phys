@@ -50,11 +50,15 @@ function renderChallenge(athletesData, monthNames) {
     `;
 
     const rulesCard = container.querySelector(".challenge-rules-card");
+    const rulesTitle = rulesCard.querySelector("h3");
     const rulesBody = rulesCard.querySelector(".challenge-rules");
+
     const card = container.querySelector(".challenge-card:nth-of-type(2)");
     const canvas = document.getElementById("challengeChartCanvas");
     const ctx = canvas.getContext("2d");
+
     const summaryCard = container.querySelector(".challenge-summary-card");
+    const summaryTitle = summaryCard.querySelector("h3");
     const summary = summaryCard.querySelector(".challenge-summary");
 
     const {
@@ -70,15 +74,18 @@ function renderChallenge(athletesData, monthNames) {
         headerFontSize
     } = getSettings();
 
-    // --- Rules card ---
+    // --- Rules card styling ---
     rulesCard.style.width = cardWidth;
     rulesCard.style.margin = "0 0 12px 0";
+    rulesCard.style.boxSizing = "border-box";
     rulesCard.style.padding = `${isMobile ? 10 : 12}px ${chartPadding}px`;
     rulesCard.style.background = "#1b1f25";
     rulesCard.style.borderRadius = "15px";
-    rulesBody.style.fontSize = fontSize + "px";
-    rulesBody.style.color = "#e6edf3";
-    rulesBody.style.opacity = "0.85";
+
+    rulesTitle.style.margin = "0 0 8px 0";
+    rulesTitle.style.fontSize = headerFontSize + "px";
+    rulesTitle.style.color = "#e6edf3";
+
     rulesBody.innerHTML = `
         <div style="display:flex;flex-direction:column;gap:6px;line-height:1.4;">
             <div>🏊‍♂️ <strong>Swim</strong>: 1 mile = <strong>4 points</strong></div>
@@ -87,23 +94,40 @@ function renderChallenge(athletesData, monthNames) {
             <div>🏋️ <strong>Weights</strong>: 10 mins = <strong>1 point</strong></div>
         </div>
     `;
+    rulesBody.style.minHeight = "40px";
+    rulesBody.style.fontSize = fontSize + "px";
+    rulesBody.style.color = "#e6edf3";
+    rulesBody.style.opacity = "0.85";
 
-    // --- Chart card ---
+    // --- Chart card styling ---
     card.style.width = cardWidth;
     card.style.margin = "0";
+    card.style.boxSizing = "border-box";
     card.style.padding = `${headerPaddingTop}px ${chartPadding}px ${chartPadding}px ${chartPadding}px`;
     card.style.height = chartHeight + "px";
     card.style.background = "#1b1f25";
     card.style.borderRadius = "15px";
+
+    const title = card.querySelector("h2");
+    title.style.margin = "0 0 8px 0";
+    title.style.fontSize = headerFontSize + "px";
+    title.style.color = "#e6edf3";
+
     canvas.style.width = "100%";
     canvas.style.height = "100%";
 
-    // --- Summary card ---
+    // --- Summary card styling ---
     summaryCard.style.width = cardWidth;
     summaryCard.style.margin = "12px 0 0 0";
+    summaryCard.style.boxSizing = "border-box";
     summaryCard.style.padding = `${isMobile ? 10 : 12}px ${chartPadding}px`;
     summaryCard.style.background = "#1b1f25";
     summaryCard.style.borderRadius = "15px";
+
+    summaryTitle.style.margin = "0 0 8px 0";
+    summaryTitle.style.fontSize = headerFontSize + "px";
+    summaryTitle.style.color = "#e6edf3";
+
     summary.style.display = "flex";
     summary.style.flexDirection = "column";
     summary.style.gap = "4px";
@@ -115,8 +139,12 @@ function renderChallenge(athletesData, monthNames) {
         Swim: 4,
         Run: 1,
         Ride: 0.25,
-        "Weight Training": 0.1 // 10 mins = 1 point -> 0.1 per min
+        "Weight Training": 0.1
     };
+
+    const now = new Date();
+    const currentDay = now.getDate(); // days to show
+    const labels = Array.from({ length: currentDay }, (_, i) => i + 1);
 
     const datasets = Object.values(athletesData).map(a => {
         const daily = a.daily || [];
@@ -127,20 +155,18 @@ function renderChallenge(athletesData, monthNames) {
                 `hsl(${Math.floor(Math.random() * 360)}, 100%, 50%)`;
         }
 
-        const dailyPoints = daily.map(d => {
+        const dailyPoints = daily.slice(0, currentDay).map(d => {
             let dayPoints = 0;
             if (d.activities.length) {
                 d.activities.forEach(act => {
-                    const type = act.type; // Use exact casing from JSON
-                    const miles = act.distance_km * 0.621371; // convert km → miles
-                    if (type === "Swim") {
-                        dayPoints += miles * pointsPerActivity.Swim;
-                    } else if (type === "Run") {
-                        dayPoints += miles * pointsPerActivity.Run;
-                    } else if (type === "Ride") {
-                        dayPoints += miles * pointsPerActivity.Ride;
-                    } else if (type === "Weight Training") {
-                        dayPoints += act.time_min * pointsPerActivity["Weight Training"];
+                    const type = act.type;
+                    const miles = act.distance_km * 0.621371;
+                    if (pointsPerActivity[type]) {
+                        if (type === "Weight Training") {
+                            dayPoints += act.time_min * pointsPerActivity[type];
+                        } else {
+                            dayPoints += miles * pointsPerActivity[type];
+                        }
                     }
                 });
             }
@@ -158,22 +184,35 @@ function renderChallenge(athletesData, monthNames) {
         };
     });
 
-    const labels = Array.from({ length: datasets[0]?.data.length || 31 }, (_, i) => i + 1);
     const maxPoints = Math.ceil(Math.max(...datasets.flatMap(d => d.data), 5)) + 1;
 
-    // --- Totals ---
+    // --- Athlete totals ---
     const totals = datasets
-        .map(d => ({ label: d.label, color: d.borderColor, total: d.data.at(-1) || 0 }))
+        .map(d => ({
+            label: d.label,
+            color: d.borderColor,
+            total: d.data.at(-1) || 0
+        }))
         .sort((a, b) => b.total - a.total);
 
+    const avatarSize = isMobile ? 16 : 20;
+
     summary.innerHTML = totals.map(t => {
-        const athlete = Object.values(athletesData).find(a => a.display_name === t.label);
-        const avatarSize = isMobile ? 16 : 20;
+        const athlete = Object.values(athletesData)
+            .find(a => a.display_name === t.label);
+
         return `
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;white-space:nowrap;">
-                <img src="${athlete?.profile || ""}" style="width:${avatarSize}px;height:${avatarSize}px;border-radius:50%;object-fit:cover;">
+            <div style="
+                display:flex;
+                align-items:center;
+                gap:6px;
+                margin-bottom:4px;
+                white-space:nowrap;
+            ">
+                <img src="${athlete?.profile || ""}"
+                     style="width:${avatarSize}px;height:${avatarSize}px;border-radius:50%;object-fit:cover;">
                 <span style="color:${t.color}">${t.label}</span>
-                <span style="opacity:0.7">${t.total.toFixed(2)} pts</span>
+                <span style="opacity:0.7">${t.total.toFixed(1)} pts</span>
             </div>
         `;
     }).join("");
@@ -195,8 +234,16 @@ function renderChallenge(athletesData, monthNames) {
             },
             scales: {
                 x: {
-                    ticks: { font: { size: fontSize }, padding: isMobile ? 10 : 6, maxRotation: 0, minRotation: 0 },
-                    title: { display: true, text: "Day of Month", font: { size: fontSize } }
+                    ticks: {
+                        font: { size: fontSize },
+                        padding: isMobile ? 10 : 6,
+                        maxRotation: 0,
+                        minRotation: 0,
+                        callback: function(val, index) {
+                            // show every other day
+                            return index % 2 === 0 ? this.getLabelForValue(val) : "";
+                        }
+                    }
                 },
                 y: {
                     min: 0,
@@ -233,3 +280,43 @@ function renderChallenge(athletesData, monthNames) {
         }]
     });
 }
+
+// --- Toggle logic ---
+function initChallengeToggle() {
+    const toggle = document.getElementById("challengeToggle");
+    const monthSelector = document.getElementById("dailyMonthSelector");
+    const monthLabel = document.querySelector(".month-label");
+
+    toggle.addEventListener("change", () => {
+        const container = document.getElementById("container");
+        const challengeContainer = document.getElementById("challengeContainer");
+        const on = toggle.checked;
+        container.style.display = on ? "none" : "flex";
+        challengeContainer.style.display = on ? "block" : "none";
+        if (monthSelector) monthSelector.style.visibility = on ? "hidden" : "visible";
+        if (monthLabel) monthLabel.style.visibility = on ? "hidden" : "visible";
+
+        const { athletesData, monthNames } = window.DASHBOARD.getData();
+        if (on) {
+            window.DASHBOARD.destroyCharts();
+            renderChallenge(athletesData, monthNames);
+        } else {
+            destroyChallenge();
+            window.DASHBOARD.renderDashboard();
+        }
+    });
+}
+
+// --- Init ---
+document.addEventListener("DOMContentLoaded", () => {
+    if (window.DASHBOARD?.getData) {
+        initChallengeToggle();
+        window.addEventListener("resize", () => {
+            if (challengeChart) {
+                destroyChallenge();
+                const { athletesData, monthNames } = window.DASHBOARD.getData();
+                renderChallenge(athletesData, monthNames);
+            }
+        });
+    }
+});
