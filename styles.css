@@ -17,6 +17,11 @@
     gap: 6px;   /* spacing between element and text */
 }
 
+/* Move Daily Distance select + label to the right */
+.controls-stack .toggle-like {
+    padding-left: 18px; /* adjust this value to move more/less */
+}
+
 /* Remove margin on span, instead use flex alignment */
 .month-label,
 .toggle-label {
@@ -91,5 +96,9 @@ select {
   }
   select {
     font-size: 12px;
+  }
+  /* Maintain indentation on mobile */
+  .controls-stack .toggle-like {
+    padding-left: 12px;
   }
 }
