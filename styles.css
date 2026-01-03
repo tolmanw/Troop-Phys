@@ -12,7 +12,7 @@ body {
 
 /* Page-level heading */
 h1 {
-    margin: 0;
+    margin: 0 0 10px 0;
     font-size: 25px;
     color: #fff;
 }
@@ -23,14 +23,15 @@ h1 {
 .controls-stack {
     display: flex;
     flex-direction: column; /* stack vertically */
-    gap: 10px; /* space between rows */
+    gap: 12px; /* space between rows */
+    margin-bottom: 20px; /* extra space before first chart card */
 }
 
 /* Each row: label + control */
 .control-item {
     display: flex;
     align-items: center; /* vertically center label and control */
-    gap: 8px; /* horizontal spacing between label and control */
+    gap: 8px; /* horizontal spacing */
 }
 
 /* Label styling */
@@ -56,7 +57,7 @@ select {
    ========================================================= */
 .toggle-switch {
     display: inline-flex;
-    align-items: center; /* center the slider vertically */
+    align-items: center; /* vertically center slider */
     gap: 6px;
     cursor: pointer;
     font-size: 14px;
@@ -99,12 +100,11 @@ select {
     transform: translateX(20px);
 }
 
-/* Toggle label text next to slider */
+/* Optional: add horizontal label next to slider */
 .toggle-switch-text {
     display: inline-block;
-    line-height: 1;
+    line-height: 1.2;
     vertical-align: middle;
-    font-size: 14px;
 }
 
 /* =========================================================
