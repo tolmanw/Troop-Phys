@@ -1,41 +1,37 @@
-/* =========================================================
-   Controls Stack (Dashboard Top Controls)
-   ========================================================= */
+/* Stack rows vertically */
 .controls-stack {
     display: flex;
-    flex-direction: column; /* stack rows vertically */
-    gap: 8px; /* space between rows */
+    flex-direction: column;
+    gap: 8px;
 }
 
-/* Each row: label + element */
+/* Each row: label + element horizontally */
 .control-item {
     display: flex;
-    align-items: center; /* align label and element horizontally */
-    gap: 8px;            /* space between label and select/toggle */
+    justify-content: space-between; /* label left, element right */
+    align-items: center;
+    width: 100%;
 }
 
-/* Label styling for left alignment */
+/* Labels */
 .control-label {
-    min-width: 140px; /* ensures label has fixed width for alignment */
-    text-align: right; /* aligns text to right edge */
-    font-size: 14px;
     color: #eee;
+    font-size: 14px;
+    min-width: 160px; /* ensures alignment */
 }
 
-/* Select styling */
+/* Select */
 select {
-    flex: 1; /* take remaining horizontal space */
+    flex: 1; /* take remaining space */
     padding: 6px;
     font-size: 14px;
 }
 
-/* Toggle Switch styling */
+/* Toggle switch */
 .toggle-switch {
     display: inline-flex;
     align-items: center;
-    gap: 6px; /* space between slider and text */
     cursor: pointer;
-    font-size: 14px;
 }
 
 .toggle-switch input {
@@ -71,34 +67,19 @@ select {
     transform: translateX(20px);
 }
 
-/* Toggle label text */
-.toggle-label {
-    line-height: 1;
-    display: inline-block;
-}
-
-/* =========================================================
-   Mobile adjustments (≤ 600px)
-   ========================================================= */
+/* Mobile adjustments */
 @media (max-width: 600px) {
     .control-label {
-        min-width: 100px; /* narrower on mobile */
         font-size: 12px;
+        min-width: 120px;
     }
-
     select {
         font-size: 12px;
     }
-
-    .toggle-switch {
-        font-size: 12px;
-    }
-
     .toggle-switch .slider {
         width: 36px;
         height: 18px;
     }
-
     .toggle-switch .slider::before {
         width: 14px;
         height: 14px;
