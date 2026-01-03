@@ -39,8 +39,9 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           CHANGED=false
+
           for FILE in data/athletes.json data/challenge_1.json; do
-            if ! git diff --quiet "$FILE"; then
+            if [ -f "$FILE" ] && ! git diff --quiet "$FILE"; then
               git add "$FILE"
               CHANGED=true
             fi
