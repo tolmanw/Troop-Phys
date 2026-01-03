@@ -86,7 +86,6 @@ function renderChallenge(athletesData, monthNames) {
     rulesTitle.style.fontSize = headerFontSize + "px";
     rulesTitle.style.color = "#e6edf3";
 
-    // --- Add rules text ---
     rulesBody.innerHTML = `
         <div style="display:flex;flex-direction:column;gap:6px;line-height:1.4;">
             <div>🏊‍♂️ <strong>Swim</strong>: 1 mile = <strong>4 points</strong></div>
@@ -135,16 +134,18 @@ function renderChallenge(athletesData, monthNames) {
     summary.style.fontSize = fontSize + "px";
     summary.style.color = "#e6edf3";
 
-    // --- Chart logic (updated for points) ---
+    // --- Prepare datasets for cumulative points ---
     const pointsPerActivity = {
-        "Swim": 4,       // 1 mile = 4 points
-        "Run": 1,        // 1 mile = 1 point
-        "Bike": 0.25,    // 1 mile = 0.25 points
-        "Weights": 0.1   // 10 min = 1 point -> 1 min = 0.1 point
+        Swim: 4,
+        Run: 1,
+        Bike: 0.25,
+        Weights: 0.1 // 10 mins = 1 point -> 1/10 = 0.1 per min
     };
 
+    const currentMonthIndex = monthNames.length - 1;
+
     const datasets = Object.values(athletesData).map(a => {
-        const daily = a.daily || []; // array of daily activities
+        const daily = a.daily || [];
         let cumulative = 0;
 
         if (!athleteColors[a.display_name]) {
@@ -152,24 +153,27 @@ function renderChallenge(athletesData, monthNames) {
                 `hsl(${Math.floor(Math.random() * 360)}, 100%, 50%)`;
         }
 
-        const data = daily.map(dayActs => {
+        const dailyPoints = daily.map(d => {
             let dayPoints = 0;
-            dayActs.forEach(act => {
-                if (pointsPerActivity[act.type]) {
-                    if (act.type === "Weights") {
-                        dayPoints += (act.duration_min || 0) * pointsPerActivity[act.type];
-                    } else {
-                        dayPoints += (act.distance_km || 0) * pointsPerActivity[act.type];
+            if (d.activities.length) {
+                d.activities.forEach(act => {
+                    if (act.toLowerCase().includes("swim")) {
+                        dayPoints += (d.distance_km || 0) * pointsPerActivity.Swim;
+                    } else if (act.toLowerCase().includes("run")) {
+                        dayPoints += (d.distance_km || 0) * pointsPerActivity.Run;
+                    } else if (act.toLowerCase().includes("bike")) {
+                        dayPoints += (d.distance_km || 0) * pointsPerActivity.Bike;
+                    } else if (act.toLowerCase().includes("weight")) {
+                        dayPoints += (d.time_min || 0) * pointsPerActivity.Weights;
                     }
-                }
-            });
-            cumulative += dayPoints;
-            return +cumulative.toFixed(2);
+                });
+            }
+            return +(cumulative += dayPoints).toFixed(2);
         });
 
         return {
             label: a.display_name,
-            data,
+            data: dailyPoints,
             borderColor: athleteColors[a.display_name],
             borderWidth: 3,
             tension: 0.3,
@@ -184,9 +188,10 @@ function renderChallenge(athletesData, monthNames) {
         return;
     }
 
-    const labels = datasets[0]?.data.map((_, i) => i + 1) || [];
+    const labels = datasets[0].data.map((_, i) => i + 1);
     const maxPoints = Math.ceil(Math.max(...datasets.flatMap(d => d.data))) + 1;
 
+    // --- Athlete totals ---
     const totals = datasets
         .map(d => ({
             label: d.label,
@@ -196,6 +201,7 @@ function renderChallenge(athletesData, monthNames) {
         .sort((a, b) => b.total - a.total);
 
     const avatarSize = isMobile ? 16 : 20;
+
     summary.innerHTML = totals.map(t => {
         const athlete = Object.values(athletesData)
             .find(a => a.display_name === t.label);
@@ -216,37 +222,27 @@ function renderChallenge(athletesData, monthNames) {
         `;
     }).join("");
 
+    // --- Chart ---
     challengeChart = new Chart(ctx, {
         type: "line",
         data: { labels, datasets },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            layout: {
-                padding: { bottom: chartPaddingBottom, right: paddingRight }
-            },
+            layout: { padding: { bottom: chartPaddingBottom, right: paddingRight } },
             plugins: {
                 legend: { display: false },
                 tooltip: {
-                    callbacks: {
-                        label: ctx => `${ctx.dataset.label}: ${ctx.raw} pts`
-                    },
                     bodyFont: { size: fontSize },
                     titleFont: { size: fontSize }
                 }
             },
             scales: {
-                x: {
-                    ticks: { font: { size: fontSize }, padding: isMobile ? 10 : 6, maxRotation: 0, minRotation: 0 }
-                },
+                x: { ticks: { font: { size: fontSize }, padding: isMobile ? 10 : 6, maxRotation: 0, minRotation: 0 } },
                 y: {
                     min: 0,
                     max: maxPoints,
-                    title: {
-                        display: true,
-                        text: "Cumulative Points",
-                        font: { size: fontSize }
-                    },
+                    title: { display: true, text: "Cumulative Points", font: { size: fontSize } },
                     ticks: { font: { size: fontSize } }
                 }
             }
@@ -258,14 +254,11 @@ function renderChallenge(athletesData, monthNames) {
                 Object.values(athletesData).forEach((a, i) => {
                     const d = chart.data.datasets[i];
                     if (!d?.data.length) return;
-
                     const idx = d.data.length - 1;
                     let xPos = x.getPixelForValue(idx + 1);
                     let yPos = y.getPixelForValue(d.data[idx]);
-
                     const size = athleteImgSize;
                     xPos = Math.min(xPos, chart.width - size / 2 - paddingRight);
-
                     const img = new Image();
                     img.src = a.profile;
                     img.onload = () => {
@@ -286,22 +279,18 @@ function renderChallenge(athletesData, monthNames) {
 function initChallengeToggle() {
     const toggle = document.getElementById("challengeToggle");
     const monthSelector = document.getElementById("dailyMonthSelector");
-    const monthLabel = document.querySelector(".month-label"); // <-- ensure label has this class
+    const monthLabel = document.querySelector(".month-label");
 
     toggle.addEventListener("change", () => {
         const container = document.getElementById("container");
         const challengeContainer = document.getElementById("challengeContainer");
-
         const on = toggle.checked;
         container.style.display = on ? "none" : "flex";
         challengeContainer.style.display = on ? "block" : "none";
-
-        // Hide/show but preserve space
         if (monthSelector) monthSelector.style.visibility = on ? "hidden" : "visible";
         if (monthLabel) monthLabel.style.visibility = on ? "hidden" : "visible";
 
         const { athletesData, monthNames } = window.DASHBOARD.getData();
-
         if (on) {
             window.DASHBOARD.destroyCharts();
             renderChallenge(athletesData, monthNames);
