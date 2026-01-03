@@ -19,7 +19,7 @@
 
 /* Move Daily Distance select + label to the right */
 .controls-stack .toggle-like {
-    padding-left: 18px; /* adjust this value to move more/less */
+    padding-left: 30px; /* adjust this value to move more/less */
 }
 
 /* Remove margin on span, instead use flex alignment */
