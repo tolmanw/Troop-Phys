@@ -155,11 +155,11 @@ function renderChallenge(athletesData, monthNames) {
                 `hsl(${Math.floor(Math.random() * 360)}, 100%, 50%)`;
         }
 
-        // --- Fixed cumulative points calculation ---
+        // --- FIX: cumulative points array with null for future days ---
         const dailyPoints = daily.map((d, i) => {
             let dayPoints = 0;
             d.activities.forEach(act => {
-                const miles = (act.distance_km || 0) * 0.621371; // km -> miles
+                const miles = (act.distance_km || 0) * 0.621371;
                 const time_min = act.time_min || 0;
                 if (pointsPerActivity[act.type]) {
                     if (act.type === "Weight Training") {
@@ -169,7 +169,9 @@ function renderChallenge(athletesData, monthNames) {
                     }
                 }
             });
-            return +(cumulative + dayPoints).toFixed(2); // always update cumulative
+            cumulative += dayPoints;
+            // only show points up to today
+            return i + 1 <= currentDay ? +cumulative.toFixed(2) : null;
         });
 
         return {
@@ -184,12 +186,8 @@ function renderChallenge(athletesData, monthNames) {
         };
     });
 
-    // --- Labels: all days in month ---
-    const labels = [];
-    if (datasets.length) {
-        const dailyLength = datasets[0].data.length;
-        for (let i = 1; i <= dailyLength; i++) labels.push(i);
-    }
+    // --- Labels for all days in month ---
+    const labels = datasets[0]?.data.map((_, idx) => idx + 1) || [];
 
     const maxPoints = Math.ceil(Math.max(...datasets.flatMap(d => d.data.filter(p => p !== null)))) + 1;
 
