@@ -1,33 +1,39 @@
-/* Stack all controls vertically */
+/* =========================================================
+   Controls Stack (Dashboard Top Controls)
+   ========================================================= */
 .controls-stack {
     display: flex;
-    flex-direction: column;
-    gap: 6px;
+    flex-direction: column; /* stack rows vertically */
+    gap: 8px; /* space between rows */
 }
 
-/* Each control item stacks its children vertically */
+/* Each row: label + element */
 .control-item {
     display: flex;
-    flex-direction: column; /* vertical stack */
-    align-items: flex-start;
-    gap: 2px; /* small gap between label and select */
+    align-items: center; /* align label and element horizontally */
+    gap: 8px;            /* space between label and select/toggle */
 }
 
-/* Move toggle label text slightly */
-.toggle-label {
-    margin-left: 6px;
+/* Label styling for left alignment */
+.control-label {
+    min-width: 140px; /* ensures label has fixed width for alignment */
+    text-align: right; /* aligns text to right edge */
+    font-size: 14px;
+    color: #eee;
 }
 
 /* Select styling */
 select {
+    flex: 1; /* take remaining horizontal space */
     padding: 6px;
+    font-size: 14px;
 }
 
-/* Toggle switch styling */
+/* Toggle Switch styling */
 .toggle-switch {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 6px; /* space between slider and text */
     cursor: pointer;
     font-size: 14px;
 }
@@ -65,18 +71,34 @@ select {
     transform: translateX(20px);
 }
 
-/* Mobile adjustments */
+/* Toggle label text */
+.toggle-label {
+    line-height: 1;
+    display: inline-block;
+}
+
+/* =========================================================
+   Mobile adjustments (≤ 600px)
+   ========================================================= */
 @media (max-width: 600px) {
+    .control-label {
+        min-width: 100px; /* narrower on mobile */
+        font-size: 12px;
+    }
+
     select {
         font-size: 12px;
     }
+
     .toggle-switch {
         font-size: 12px;
     }
+
     .toggle-switch .slider {
         width: 36px;
         height: 18px;
     }
+
     .toggle-switch .slider::before {
         width: 14px;
         height: 14px;
