@@ -237,25 +237,19 @@ select, input[type=checkbox] {
 <p id="lastSynced" style="font-size:12px;opacity:0.7;">Loading last synced...</p>
 <img id="logo" src="logo.jpeg" alt="Logo">
 
-<div class="controls-stack">
+<label class="toggle-like" style="font-size:14px; font-weight:500; color:#e6edf3;">
+    <select id="dailyMonthSelector"></select>
+    <span class="month-label" style="margin-left:10px;">
+        Daily Distance Month
+    </span>
+</label>
+<br>
 
-    <!-- Daily Distance Month Selector -->
-    <div class="control-item">
-        <label for="dailyMonthSelector" class="control-label">Daily Distance Month</label>
-        <select id="dailyMonthSelector"></select>
-    </div>
-
-    <!-- Show Monthly Challenge Toggle -->
-    <div class="control-item">
-        <label for="challengeToggle" class="control-label">Show Monthly Challenge</label>
-        <label class="toggle-switch">
-            <input type="checkbox" id="challengeToggle">
-            <span class="slider"></span>
-        </label>
-    </div>
-
-</div>
-
+<label class="toggle-switch" style="font-size:14px; font-weight:500; color:#e6edf3;">
+    <input type="checkbox" id="challengeToggle">
+    <span class="slider"></span>
+    <span style="margin-left:10px;">Show Monthly Challenge</span>
+</label>
 
 <div id="container"></div>
 <div id="challengeContainer" style="display:none;"></div>
