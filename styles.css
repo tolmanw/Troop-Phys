@@ -1,4 +1,6 @@
-/* General body and typography */
+/* =========================================================
+   Global base styles
+   ========================================================= */
 body {
   background: #111;
   color: #eee;
@@ -7,25 +9,18 @@ body {
   padding: 0;
 }
 
-/* Header styling */
-header {
-  background: #222;
-  padding: 20px;
-  text-align: center;
-  border-bottom: 1px solid #333;
-}
-
+/* Page-level heading (used by dashboard title) */
 h1 {
   margin: 0;
   font-size: 2rem;
   color: #fff;
 }
 
-#activity-selector {
-  margin-top: 10px;
-}
+/* =========================================================
+   Form controls
+   ========================================================= */
 
-/* Generic selects including daily month selector */
+/* Generic select styling (month selector, future selects) */
 select {
   padding: 6px;
   background: #333;
@@ -36,43 +31,19 @@ select {
   cursor: pointer;
 }
 
-/* Main container and sections */
-main {
-  max-width: 1000px;
-  margin: auto;
-  padding: 20px;
-}
+/* =========================================================
+   Chart canvas presentation
+   NOTE: Chart.js still controls sizing via JS
+   ========================================================= */
 
-section {
-  margin-bottom: 40px;
-}
-
-/* Leaderboard styling */
-#leaderboard .athlete {
-  display: flex;
-  align-items: center;
-  padding: 10px;
-  background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 8px;
-  margin-bottom: 10px;
-}
-
-#leaderboard img {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  margin-right: 15px;
-}
-
-/* Canvas styling */
+/* Visual styling applied directly to all charts */
 canvas {
   background: #1a1a1a;
   padding: 10px;
   border-radius: 10px;
 }
 
-/* Fixed medium size for Monthly Challenge chart */
+/* Monthly Challenge chart sizing constraint */
 #challengeContainer .challenge-card canvas {
   width: 100% !important;
   height: 300px !important;
@@ -80,7 +51,11 @@ canvas {
   display: block;
 }
 
-/* --- Toggle Switch --- */
+/* =========================================================
+   Toggle switch (dashboard / challenge mode)
+   ========================================================= */
+
+/* Toggle container and label */
 .toggle-switch {
   display: inline-flex;
   align-items: center;
@@ -90,10 +65,12 @@ canvas {
   margin-bottom: 8px;
 }
 
+/* Hide native checkbox */
 .toggle-switch input {
   display: none;
 }
 
+/* Toggle track */
 .toggle-switch .slider {
   position: relative;
   width: 42px;
@@ -103,6 +80,7 @@ canvas {
   transition: background-color 0.25s ease;
 }
 
+/* Toggle knob */
 .toggle-switch .slider::before {
   content: "";
   position: absolute;
@@ -115,6 +93,7 @@ canvas {
   transition: transform 0.25s ease;
 }
 
+/* Toggle ON state */
 .toggle-switch input:checked + .slider {
   background-color: #2da44e;
 }
@@ -123,19 +102,24 @@ canvas {
   transform: translateX(20px);
 }
 
-/* Optional mobile scaling for toggle */
+/* =========================================================
+   Mobile adjustments (≤ 600px)
+   ========================================================= */
+
 @media (max-width: 600px) {
+  /* Slightly smaller toggle on mobile */
   .toggle-switch {
     font-size: 12px;
   }
+
   .toggle-switch .slider {
     width: 36px;
     height: 18px;
   }
+
   .toggle-switch .slider::before {
     width: 14px;
     height: 14px;
     top: 2px;
-    left: 2px;
   }
 }
