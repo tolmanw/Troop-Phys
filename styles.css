@@ -35,7 +35,8 @@ h1 {
 
 /* Label styling */
 .control-item label.control-label {
-    min-width: 150px; /* optional: keeps labels aligned */
+    min-width: 150px; /* keeps labels aligned */
+    display: inline-block;
 }
 
 /* Select styling */
@@ -55,8 +56,8 @@ select {
    ========================================================= */
 .toggle-switch {
     display: inline-flex;
-    align-items: center; /* vertically center slider and label text */
-    gap: 6px; 
+    align-items: center; /* center the slider vertically */
+    gap: 6px;
     cursor: pointer;
     font-size: 14px;
 }
@@ -76,6 +77,7 @@ select {
     transition: background-color 0.25s ease;
 }
 
+/* Slider knob */
 .toggle-switch .slider::before {
     content: "";
     position: absolute;
@@ -88,6 +90,7 @@ select {
     transition: transform 0.25s ease;
 }
 
+/* Toggle checked state */
 .toggle-switch input:checked + .slider {
     background-color: #2da44e;
 }
@@ -97,10 +100,11 @@ select {
 }
 
 /* Toggle label text next to slider */
-.toggle-switch .toggle-label {
+.toggle-switch-text {
     display: inline-block;
     line-height: 1;
     vertical-align: middle;
+    font-size: 14px;
 }
 
 /* =========================================================
@@ -198,15 +202,6 @@ select {
    Mobile overrides (≤ 600px)
    ========================================================= */
 @media (max-width: 600px) {
-    :root {
-        --daily-width: 92%;
-        --daily-height: 140px;
-        --bottom-width: 30%;
-        --bottom-height: 90px;
-        --card-width: 95%;
-        --card-gap: 12px;
-    }
-
     body {
         padding: 10px;
         font-size: 12px;
@@ -244,13 +239,19 @@ select {
     .toggle-switch {
         font-size: 12px;
     }
+
     .toggle-switch .slider {
         width: 36px;
         height: 18px;
     }
+
     .toggle-switch .slider::before {
         width: 14px;
         height: 14px;
         top: 2px;
+    }
+
+    .toggle-switch-text {
+        font-size: 12px;
     }
 }
