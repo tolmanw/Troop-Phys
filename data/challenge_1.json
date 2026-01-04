@@ -204,6 +204,225 @@
           "time_min": 0.0,
           "activities": []
         }
+      ],
+      "daily_summary": [
+        {
+          "date": "2026-01-01",
+          "Run": 14.48,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-02",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-03",
+          "Run": 8.05,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-04",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-05",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-06",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-07",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-08",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-09",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-10",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-11",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-12",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-13",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-14",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-15",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-16",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-17",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-18",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-19",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-20",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-21",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-22",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-23",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-24",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-25",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-26",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-27",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-28",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-29",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-30",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-31",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        }
       ]
     },
     "TO1234": {
@@ -396,9 +615,228 @@
           "time_min": 0.0,
           "activities": []
         }
+      ],
+      "daily_summary": [
+        {
+          "date": "2026-01-01",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-02",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-03",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-04",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-05",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-06",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-07",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-08",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-09",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-10",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-11",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-12",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-13",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-14",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-15",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-16",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-17",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-18",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-19",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-20",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-21",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-22",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-23",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-24",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-25",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-26",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-27",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-28",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-29",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-30",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        },
+        {
+          "date": "2026-01-31",
+          "Run": 0,
+          "Swim": 0,
+          "Ride": 0,
+          "Weight Training": 0
+        }
       ]
     }
   },
   "month": "January 2026",
-  "last_synced": "04-01-2026 07:20"
+  "last_synced": "04-01-2026 08:21"
 }
