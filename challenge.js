@@ -135,10 +135,10 @@ function renderChallenge(athletesData, monthNames) {
     summary.style.fontSize = fontSize + "px";
     summary.style.color = "#e6edf3";
 
-    // --- Prepare datasets for cumulative points ---
+    // --- Points mapping ---
     const pointsPerActivity = {
-        Swim: 4,
         Run: 1,
+        Swim: 4,
         Ride: 0.25,
         "Weight Training": 0.1
     };
@@ -146,35 +146,32 @@ function renderChallenge(athletesData, monthNames) {
     const today = new Date();
     const currentDay = today.getDate();
 
+    // --- Datasets from daily_summary ---
     const datasets = Object.values(athletesData).map(a => {
-        const daily = a.daily || [];
         let cumulative = 0;
 
         if (!athleteColors[a.display_name]) {
             athleteColors[a.display_name] = `hsl(${Math.floor(Math.random() * 360)}, 100%, 50%)`;
         }
 
-        const dailyPoints = daily.map((d, i) => {
-            if (i >= currentDay) return null;
+        const dailyPoints = a.daily_summary.map(d => {
             let dayPoints = 0;
-            d.activities.forEach(act => {
-                const miles = (act.distance_km || 0) * 0.621371;
-                const time_min = act.time_min || 0;
-                if (pointsPerActivity[act.type]) {
-                    if (act.type === "Weight Training") {
-                        dayPoints += time_min * pointsPerActivity["Weight Training"];
+            for (const type of ["Run", "Swim", "Ride", "Weight Training"]) {
+                if (d[type]) {
+                    if (type === "Weight Training") {
+                        dayPoints += d[type] * pointsPerActivity[type]; // mins
                     } else {
-                        dayPoints += miles * pointsPerActivity[act.type];
+                        dayPoints += d[type] * pointsPerActivity[type]; // km
                     }
                 }
-            });
+            }
             cumulative += dayPoints;
             return +cumulative.toFixed(2);
         });
 
         return {
             label: a.display_name,
-            data: dailyPoints,
+            data: dailyPoints.map((p, i) => i >= currentDay ? null : p),
             borderColor: athleteColors[a.display_name],
             borderWidth: 3,
             tension: 0.3,
@@ -184,11 +181,10 @@ function renderChallenge(athletesData, monthNames) {
         };
     });
 
-    // --- Labels ---
     const labels = datasets.length ? datasets[0].data.map((_, i) => i + 1) : [];
     const maxPoints = Math.ceil(Math.max(...datasets.flatMap(d => d.data.filter(p => p !== null)))) + 1;
 
-    // --- Athlete totals ---
+    // --- Totals for summary ---
     const totals = datasets
         .map(d => ({ label: d.label, color: d.borderColor, total: d.data[d.data.length - 1] || 0 }))
         .sort((a, b) => b.total - a.total);
